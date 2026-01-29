@@ -17,7 +17,11 @@ from pathlib import Path
 # Add scripts dir to path for imports
 sys.path.insert(0, str(Path(__file__).parent))
 
-from extractors import SpellExtractor, CreatureExtractor, ItemExtractor
+from extractors import (
+    SpellExtractor, CreatureExtractor, ItemExtractor,
+    FeatExtractor, BackgroundExtractor, SpeciesExtractor,
+    ClassExtractor, EquipmentExtractor
+)
 
 # Repository root (parent of scripts/)
 REPO_ROOT = Path(__file__).parent.parent
@@ -224,25 +228,35 @@ Introductory adventure series for new spelljammers. Designed for levels 1-4.
 
 ## Reference Data
 
-Individual entries for cross-referencing. Each spell, creature, and item has its own file.
+Individual entries for cross-referencing. Each entry has its own markdown file.
+
+### Character Creation
+
+| Reference | Description | Location |
+| --------- | ----------- | -------- |
+| Classes | 12 classes with subclasses | [reference/classes/](reference/classes/) |
+| Species | Player species options | [reference/species/](reference/species/) |
+| Backgrounds | Character backgrounds | [reference/backgrounds/](reference/backgrounds/) |
+| Feats | Origin and general feats | [reference/feats/](reference/feats/) |
 
 ### Spells
 
-- **[Spell Index](reference/spells/index.md)** - 393 spells organized by level
+- **[Spell Index](reference/spells/index.md)** - Spells organized by level
 - Individual spell files in `reference/spells/{level}/`
 - Example: [Fireball](reference/spells/3rd-level/fireball.md)
 
 ### Creatures
 
-- **[Creature Index](reference/creatures/index.md)** - 575 creatures organized by CR
+- **[Creature Index](reference/creatures/index.md)** - Creatures organized by CR
 - Individual creature files in `reference/creatures/`
 - Example: [Adult Red Dragon](reference/creatures/adult-red-dragon.md)
 
-### Magic Items
+### Items
 
-- **[Item Index](reference/items/index.md)** - 1,244 items organized by rarity
-- Individual item files in `reference/items/`
-- Example: [Bag of Holding](reference/items/bag-of-holding.md)
+| Reference | Description | Location |
+| --------- | ----------- | -------- |
+| Magic Items | Wondrous items, weapons, armor | [reference/items/](reference/items/) |
+| Equipment | Mundane gear, weapons, armor | [reference/equipment/](reference/equipment/) |
 
 ---
 
@@ -339,8 +353,8 @@ def extract_creatures():
 
 
 def extract_items():
-    """Extract items to individual files."""
-    print("Extracting items...")
+    """Extract magic items to individual files."""
+    print("Extracting magic items...")
     items_dir = REFERENCE_DIR / "items"
 
     # Filter to only our target sources
@@ -350,11 +364,117 @@ def extract_items():
     items_file = DATA_DIR / "items.json"
     if items_file.exists():
         count = extractor.extract_file(str(items_file))
-        print(f"  Total: {count} items")
+        print(f"  Total: {count} magic items")
 
     # Create index
     extractor.create_index()
     print(f"  -> {items_dir.relative_to(REPO_ROOT)}/")
+
+
+def extract_feats():
+    """Extract feats to individual files."""
+    print("Extracting feats...")
+    feats_dir = REFERENCE_DIR / "feats"
+
+    extractor = FeatExtractor(str(feats_dir))
+
+    feats_file = DATA_DIR / "feats.json"
+    if feats_file.exists():
+        count = extractor.extract_file(str(feats_file))
+        print(f"  Total: {count} feats")
+
+    # Create index
+    extractor.create_index()
+    print(f"  -> {feats_dir.relative_to(REPO_ROOT)}/")
+
+
+def extract_backgrounds():
+    """Extract backgrounds to individual files."""
+    print("Extracting backgrounds...")
+    bg_dir = REFERENCE_DIR / "backgrounds"
+
+    extractor = BackgroundExtractor(str(bg_dir))
+
+    bg_file = DATA_DIR / "backgrounds.json"
+    if bg_file.exists():
+        count = extractor.extract_file(str(bg_file))
+        print(f"  Total: {count} backgrounds")
+
+    # Create index
+    extractor.create_index()
+    print(f"  -> {bg_dir.relative_to(REPO_ROOT)}/")
+
+
+def extract_species():
+    """Extract species/races to individual files."""
+    print("Extracting species...")
+    species_dir = REFERENCE_DIR / "species"
+
+    extractor = SpeciesExtractor(str(species_dir))
+
+    races_file = DATA_DIR / "races.json"
+    if races_file.exists():
+        count = extractor.extract_file(str(races_file))
+        print(f"  Total: {count} species")
+
+    # Create index
+    extractor.create_index()
+    print(f"  -> {species_dir.relative_to(REPO_ROOT)}/")
+
+
+def extract_classes():
+    """Extract classes and subclasses to individual files."""
+    print("Extracting classes...")
+    classes_dir = REFERENCE_DIR / "classes"
+
+    extractor = ClassExtractor(str(classes_dir), source='XPHB')
+
+    # Process each class file
+    class_dir = DATA_DIR / "class"
+    class_files = [
+        'class-barbarian.json',
+        'class-bard.json',
+        'class-cleric.json',
+        'class-druid.json',
+        'class-fighter.json',
+        'class-monk.json',
+        'class-paladin.json',
+        'class-ranger.json',
+        'class-rogue.json',
+        'class-sorcerer.json',
+        'class-warlock.json',
+        'class-wizard.json',
+    ]
+
+    total = 0
+    for class_file in class_files:
+        class_path = class_dir / class_file
+        if class_path.exists():
+            count = extractor.extract_file(str(class_path))
+            total += count
+
+    print(f"  Total: {total} classes")
+
+    # Create index
+    extractor.create_index()
+    print(f"  -> {classes_dir.relative_to(REPO_ROOT)}/")
+
+
+def extract_equipment():
+    """Extract mundane equipment to individual files."""
+    print("Extracting equipment...")
+    equip_dir = REFERENCE_DIR / "equipment"
+
+    extractor = EquipmentExtractor(str(equip_dir))
+
+    items_file = DATA_DIR / "items.json"
+    if items_file.exists():
+        count = extractor.extract_file(str(items_file))
+        print(f"  Total: {count} equipment items")
+
+    # Create index
+    extractor.create_index()
+    print(f"  -> {equip_dir.relative_to(REPO_ROOT)}/")
 
 
 def main():
@@ -396,6 +516,21 @@ def main():
     print()
 
     extract_items()
+    print()
+
+    extract_feats()
+    print()
+
+    extract_backgrounds()
+    print()
+
+    extract_species()
+    print()
+
+    extract_classes()
+    print()
+
+    extract_equipment()
     print()
 
     # Create README
