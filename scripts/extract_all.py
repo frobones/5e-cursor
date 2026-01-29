@@ -14,11 +14,16 @@ import subprocess
 import sys
 from pathlib import Path
 
+# Add scripts dir to path for imports
+sys.path.insert(0, str(Path(__file__).parent))
+
+from extractors import SpellExtractor, CreatureExtractor, ItemExtractor
 
 # Repository root (parent of scripts/)
 REPO_ROOT = Path(__file__).parent.parent
 DATA_DIR = REPO_ROOT / "5etools-src" / "data"
 BOOKS_DIR = REPO_ROOT / "books"
+REFERENCE_DIR = BOOKS_DIR / "reference"
 EXTRACT_SCRIPT = REPO_ROOT / "scripts" / "extract_book.py"
 
 # Books to extract
@@ -217,6 +222,30 @@ Introductory adventure series for new spelljammers. Designed for levels 1-4.
 
 ---
 
+## Reference Data
+
+Individual entries for cross-referencing. Each spell, creature, and item has its own file.
+
+### Spells
+
+- **[Spell Index](reference/spells/index.md)** - 393 spells organized by level
+- Individual spell files in `reference/spells/{level}/`
+- Example: [Fireball](reference/spells/3rd-level/fireball.md)
+
+### Creatures
+
+- **[Creature Index](reference/creatures/index.md)** - 575 creatures organized by CR
+- Individual creature files in `reference/creatures/`
+- Example: [Adult Red Dragon](reference/creatures/adult-red-dragon.md)
+
+### Magic Items
+
+- **[Item Index](reference/items/index.md)** - 1,244 items organized by rarity
+- Individual item files in `reference/items/`
+- Example: [Bag of Holding](reference/items/bag-of-holding.md)
+
+---
+
 ## Source
 
 Content extracted from [5etools](https://5e.tools/) data repository using `scripts/extract_all.py`.
@@ -261,6 +290,73 @@ def create_readme():
     print(f"Created: {readme_path.relative_to(REPO_ROOT)}")
 
 
+def extract_spells():
+    """Extract spells to individual files."""
+    print("Extracting spells...")
+    spells_dir = REFERENCE_DIR / "spells"
+
+    extractor = SpellExtractor(str(spells_dir))
+
+    # Extract from XPHB (2024 PHB)
+    xphb_spells = DATA_DIR / "spells" / "spells-xphb.json"
+    if xphb_spells.exists():
+        count = extractor.extract_file(str(xphb_spells))
+        print(f"  XPHB: {count} spells")
+
+    # Extract from AAG (Spelljammer)
+    aag_spells = DATA_DIR / "spells" / "spells-aag.json"
+    if aag_spells.exists():
+        count = extractor.extract_file(str(aag_spells))
+        print(f"  AAG: {count} spells")
+
+    # Create index
+    extractor.create_index()
+    print(f"  -> {spells_dir.relative_to(REPO_ROOT)}/")
+
+
+def extract_creatures():
+    """Extract creatures to individual files."""
+    print("Extracting creatures...")
+    creatures_dir = REFERENCE_DIR / "creatures"
+
+    extractor = CreatureExtractor(str(creatures_dir))
+
+    # Extract from XMM (2024 Monster Manual)
+    xmm_creatures = DATA_DIR / "bestiary" / "bestiary-xmm.json"
+    if xmm_creatures.exists():
+        count = extractor.extract_file(str(xmm_creatures))
+        print(f"  XMM: {count} creatures")
+
+    # Extract from BAM (Boo's Astral Menagerie)
+    bam_creatures = DATA_DIR / "bestiary" / "bestiary-bam.json"
+    if bam_creatures.exists():
+        count = extractor.extract_file(str(bam_creatures))
+        print(f"  BAM: {count} creatures")
+
+    # Create index
+    extractor.create_index()
+    print(f"  -> {creatures_dir.relative_to(REPO_ROOT)}/")
+
+
+def extract_items():
+    """Extract items to individual files."""
+    print("Extracting items...")
+    items_dir = REFERENCE_DIR / "items"
+
+    # Filter to only our target sources
+    sources = ['XDMG', 'XPHB', 'AAG', 'DMG']
+    extractor = ItemExtractor(str(items_dir), sources=sources)
+
+    items_file = DATA_DIR / "items.json"
+    if items_file.exists():
+        count = extractor.extract_file(str(items_file))
+        print(f"  Total: {count} items")
+
+    # Create index
+    extractor.create_index()
+    print(f"  -> {items_dir.relative_to(REPO_ROOT)}/")
+
+
 def main():
     print("=" * 60)
     print("D&D Book Extraction for Spelljammer Campaign")
@@ -272,6 +368,7 @@ def main():
 
     # Create books directory
     BOOKS_DIR.mkdir(parents=True, exist_ok=True)
+    REFERENCE_DIR.mkdir(parents=True, exist_ok=True)
 
     # Extract all books
     print("Extracting books...")
@@ -288,6 +385,19 @@ def main():
 
     print()
 
+    # Extract reference data
+    print("Extracting reference data...")
+    print()
+
+    extract_spells()
+    print()
+
+    extract_creatures()
+    print()
+
+    extract_items()
+    print()
+
     # Create README
     print("Creating master index...")
     create_readme()
@@ -296,6 +406,7 @@ def main():
     print("=" * 60)
     print("Extraction complete!")
     print(f"Books available in: {BOOKS_DIR.relative_to(REPO_ROOT)}/")
+    print(f"Reference data in: {REFERENCE_DIR.relative_to(REPO_ROOT)}/")
     print("=" * 60)
 
 
