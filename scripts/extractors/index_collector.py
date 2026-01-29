@@ -99,6 +99,21 @@ class IndexCollector:
                     clean_entry['equipment_type'] = entry.get('type', '')
                     clean_entry['cost'] = entry.get('cost', '')
                     clean_entry['damage'] = entry.get('damage', '')
+                elif category == 'feats':
+                    clean_entry['feat_category'] = entry.get('category', '')
+                    clean_entry['prerequisite'] = entry.get('prerequisite', '')
+                elif category == 'backgrounds':
+                    clean_entry['feat'] = entry.get('feat', '')
+                elif category == 'species':
+                    clean_entry['size'] = entry.get('size', '')
+                    clean_entry['speed'] = entry.get('speed', '')
+                elif category == 'classes':
+                    clean_entry['hit_die'] = entry.get('hit_die', '')
+                elif category == 'class-features':
+                    clean_entry['class'] = entry.get('class', '')
+                    clean_entry['level'] = entry.get('level', 1)
+                elif category == 'rules':
+                    clean_entry['rule_type'] = entry.get('type', '')
 
                 all_entries.append(clean_entry)
                 by_type[category].append(entry.get('name', ''))

@@ -18,6 +18,7 @@ from pathlib import Path
 # Add scripts dir to path for imports
 sys.path.insert(0, str(Path(__file__).parent))
 
+from extract_book import EntryConverter
 from extractors import (
     SpellExtractor, CreatureExtractor, ItemExtractor,
     FeatExtractor, BackgroundExtractor, SpeciesExtractor,
@@ -560,6 +561,7 @@ def extract_feats():
 
     # Create index
     extractor.create_index()
+    EXTRACTORS['feats'] = extractor
     print(f"  -> {feats_dir.relative_to(REPO_ROOT)}/")
 
 
@@ -577,6 +579,7 @@ def extract_backgrounds():
 
     # Create index
     extractor.create_index()
+    EXTRACTORS['backgrounds'] = extractor
     print(f"  -> {bg_dir.relative_to(REPO_ROOT)}/")
 
 
@@ -594,6 +597,7 @@ def extract_species():
 
     # Create index
     extractor.create_index()
+    EXTRACTORS['species'] = extractor
     print(f"  -> {species_dir.relative_to(REPO_ROOT)}/")
 
 
@@ -644,7 +648,94 @@ def extract_classes():
 
     # Create index
     extractor.create_index()
+    EXTRACTORS['classes'] = extractor
     print(f"  -> {classes_dir.relative_to(REPO_ROOT)}/")
+
+
+def extract_class_features():
+    """Extract class features as individual searchable files."""
+    print("Extracting class features...")
+    features_dir = REFERENCE_DIR / "class-features"
+    features_dir.mkdir(parents=True, exist_ok=True)
+
+    index_entries = []
+    class_dir = DATA_DIR / "class"
+
+    class_files = [
+        'class-barbarian.json', 'class-bard.json', 'class-cleric.json',
+        'class-druid.json', 'class-fighter.json', 'class-monk.json',
+        'class-paladin.json', 'class-ranger.json', 'class-rogue.json',
+        'class-sorcerer.json', 'class-warlock.json', 'class-wizard.json',
+        'class-artificer.json',
+    ]
+
+    sources = ['XPHB', 'EFA']
+    seen_features = set()
+
+    for class_file in class_files:
+        class_path = class_dir / class_file
+        if not class_path.exists():
+            continue
+
+        with open(class_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        class_features = data.get('classFeature', [])
+
+        for feature in class_features:
+            source = feature.get('source', '').upper()
+            if source not in sources:
+                continue
+
+            name = feature.get('name', '')
+            class_name = feature.get('className', '')
+            level = feature.get('level', 1)
+
+            # Skip duplicates
+            key = f"{name}|{class_name}"
+            if key in seen_features:
+                continue
+            seen_features.add(key)
+
+            # Create feature file
+            safe_name = _make_safe_filename(name)
+            safe_class = _make_safe_filename(class_name)
+            filename = f"{safe_class}-{safe_name}.md"
+            feature_path = features_dir / filename
+
+            # Convert entries to markdown
+            converter = EntryConverter(heading_level=2)
+            entries = feature.get('entries', [])
+            content = converter.convert(entries, 0) if entries else ''
+
+            md_content = f"""# {name}
+
+*{class_name} Feature (Level {level})*
+
+**Source:** {source}
+
+---
+
+{content}
+"""
+            with open(feature_path, 'w', encoding='utf-8') as f:
+                f.write(md_content)
+
+            index_entries.append({
+                'name': name,
+                'class': class_name,
+                'level': level,
+                'path': filename,
+            })
+
+    # Create a mock extractor object for the index
+    class ClassFeatureExtractor:
+        def __init__(self, entries):
+            self.index_entries = entries
+
+    EXTRACTORS['class-features'] = ClassFeatureExtractor(index_entries)
+    print(f"  Total: {len(index_entries)} class features")
+    print(f"  -> {features_dir.relative_to(REPO_ROOT)}/")
 
 
 def extract_equipment():
@@ -715,6 +806,7 @@ def extract_rules():
 
     # Create index
     extractor.create_index()
+    EXTRACTORS['rules'] = extractor
     print(f"  -> {rules_dir.relative_to(REPO_ROOT)}/")
 
 
@@ -943,6 +1035,24 @@ def generate_indexes():
     if 'equipment' in EXTRACTORS:
         collector.add_entries('equipment', EXTRACTORS['equipment'].index_entries)
 
+    # Add additional extractors for comprehensive search
+    if 'feats' in EXTRACTORS:
+        collector.add_entries('feats', EXTRACTORS['feats'].index_entries)
+    if 'backgrounds' in EXTRACTORS:
+        collector.add_entries('backgrounds', EXTRACTORS['backgrounds'].index_entries)
+    if 'species' in EXTRACTORS:
+        collector.add_entries('species', EXTRACTORS['species'].index_entries)
+    if 'classes' in EXTRACTORS:
+        collector.add_entries('classes', EXTRACTORS['classes'].index_entries)
+    if 'class-features' in EXTRACTORS:
+        collector.add_entries('class-features', EXTRACTORS['class-features'].index_entries)
+
+    # Add rules (flatten the dict structure)
+    if 'rules' in EXTRACTORS:
+        rules_extractor = EXTRACTORS['rules']
+        for category, entries in rules_extractor.index_entries.items():
+            collector.add_entries('rules', entries)
+
     # Generate master JSON index
     collector.generate_master_json(BOOKS_DIR / "reference-index.json")
 
@@ -1013,6 +1123,9 @@ def main():
     print()
 
     extract_classes()
+    print()
+
+    extract_class_features()
     print()
 
     extract_equipment()
