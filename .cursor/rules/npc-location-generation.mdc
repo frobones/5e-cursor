@@ -1,0 +1,313 @@
+---
+description: "AI-assisted generation of NPCs and locations with campaign-consistent, thematically rich expansions"
+globs:
+  - "campaign/npcs/**"
+  - "campaign/locations/**"
+---
+
+# AI-Assisted NPC & Location Generation
+
+This rule guides the AI to help users create rich, campaign-consistent NPCs and locations by expanding partial input with thematic details.
+
+## When to Activate
+
+Activate this workflow when the user:
+
+- Asks to create, add, or generate an NPC or location
+- Describes a character or place they want to add to the campaign
+- Mentions needing an NPC or location for their campaign
+- Uses phrases like "I need a...", "Create a...", "Add an NPC for...", "Make a location..."
+
+## Context Gathering (Do This First)
+
+Before generating content, gather campaign context using the available tools:
+
+### Quick Context (Recommended)
+
+Run the campaign context command to get a consolidated summary:
+
+```bash
+python scripts/campaign/campaign_manager.py context
+```
+
+This outputs:
+
+- Campaign name, setting, and themes
+- All NPCs with role, occupation, and location
+- All locations with type and region
+- Last 3 sessions with titles and dates
+
+### Name Validation
+
+Before creating any entity, check for name conflicts:
+
+```bash
+python scripts/campaign/campaign_manager.py check-name "Proposed Name"
+python scripts/campaign/campaign_manager.py check-name "Proposed Name" --type npc
+python scripts/campaign/campaign_manager.py check-name "Proposed Name" --type location
+```
+
+This checks for exact matches and slug collisions (e.g., "Elara" would conflict with "elara").
+
+### Additional Context (If Needed)
+
+For deeper context, read these files directly:
+
+1. **Campaign Overview**: Read `campaign/campaign.md` for full setting details
+2. **Party Composition**: Read `campaign/party/index.md` for party level and composition
+3. **Specific Sessions**: Read `campaign/sessions/session-NNN.md` for plot details
+
+## Reference Data Lookup
+
+### For NPCs
+
+Use the D&D reference lookup rule (`.cursor/rules/dnd-reference-lookup.mdc`) to consult:
+
+- **Species**: `books/reference/species/` for physical trait inspiration
+- **Classes**: `books/reference/classes/` for occupation/combat archetype ideas
+- **Backgrounds**: `books/reference/backgrounds/` for personality hooks
+- **Creatures**: `books/reference/creatures/` for stat block suggestions (if combat-relevant)
+
+### For Locations
+
+Consult:
+
+- **Existing location types**: tavern, shop, temple, dungeon, city, town, village, wilderness, landmark
+- **Creatures by environment**: Use `books/cross-references/creatures-by-type.md` for inhabitants
+- **Items by rarity**: Use `books/cross-references/items-by-rarity.md` for treasure/goods
+
+## Expansion Guidelines
+
+### NPC Expansion
+
+When the user provides partial NPC information, expand with:
+
+| Field | Expansion Approach |
+| ----- | ------------------ |
+| **Name** | If not provided, suggest 2-3 thematically appropriate names |
+| **Species** | Infer from name/description, or suggest options fitting the setting |
+| **Role** | Classify as ally, neutral, enemy, or unknown based on context |
+| **Occupation** | Expand with specific duties, expertise, or daily activities |
+| **Physical Description** | Add species-appropriate traits, age, distinguishing features, clothing |
+| **Personality** | Generate 2-3 traits, a mannerism, speaking style, and a secret motivation |
+| **Connections** | Link to existing NPCs/locations where logical; suggest new relationships |
+| **Voice/Mannerisms** | Add a memorable quirk, phrase, or behavioral pattern for roleplay |
+| **Secrets** | Create 1-2 hidden facts the party might discover |
+| **Combat Role** | If relevant, suggest a creature stat block or class/level approximation |
+
+### Location Expansion
+
+When the user provides partial location information, expand with:
+
+| Field | Expansion Approach |
+| ----- | ------------------ |
+| **Name** | If not provided, suggest 2-3 evocative, setting-appropriate names |
+| **Type** | Classify: city, town, village, dungeon, tavern, shop, temple, wilderness, landmark, other |
+| **Region** | Place within existing geography or suggest a new region |
+| **Sensory Details** | Add sights, sounds, smells, textures specific to this place |
+| **Notable Features** | Generate 3-5 interesting elements (architecture, natural features, curiosities) |
+| **Key NPCs** | Suggest existing NPCs who might be found here, or generate new ones |
+| **Connections** | Link to nearby locations; suggest travel routes or hidden passages |
+| **Potential Encounters** | Suggest 2-3 appropriate creatures or conflict scenarios |
+| **Secrets/Hooks** | Create 1-2 hidden features or adventure hooks |
+
+## Generation Process
+
+### Step 1: Acknowledge and Clarify
+
+If the user's input is minimal, ask clarifying questions:
+
+- "What role does this NPC play in your campaign?" (ally, enemy, quest-giver, etc.)
+- "What type of location is this?" (urban, wilderness, dungeon, etc.)
+- "Should this connect to any existing NPCs or locations?"
+- "Is this for an upcoming encounter or background world-building?"
+
+### Step 2: Generate and Present
+
+Generate the expanded entity and present it for review:
+
+```markdown
+## [NPC/Location Name]
+
+Here's the expanded version based on your input and campaign context:
+
+[Full markdown content with all expanded fields]
+
+---
+
+**Connections to existing campaign elements:**
+- [List any links to existing NPCs, locations, or plot threads]
+
+**Would you like me to:**
+1. Create this file as-is
+2. Modify any sections
+3. Generate alternative options for [specific field]
+```
+
+### Step 3: Create the File
+
+Once approved, create the file using the appropriate format:
+
+**For NPCs** - Create `campaign/npcs/{slug}.md`:
+
+```markdown
+# {Name}
+
+**Role**: {role}  
+**Occupation**: {occupation}  
+**Location**: {location}
+
+---
+
+## Description
+
+{physical description}
+
+## Personality
+
+{personality traits, goals, motivations}
+
+**Voice/Mannerisms**: {speaking style, quirks}
+
+## Connections
+
+{relationships with other NPCs, factions, party}
+
+## Secrets
+
+{hidden information for DM reference}
+
+## Combat
+
+{stat block reference or "Non-combatant"}
+
+## Notes
+
+{additional notes}
+
+---
+
+*Created on {date}*
+```
+
+**For Locations** - Create `campaign/locations/{slug}.md`:
+
+```markdown
+# {Name}
+
+**Type**: {type}  
+**Region**: {region}
+
+---
+
+## Description
+
+{general description}
+
+## Sensory Details
+
+- **Sights**: {visual elements}
+- **Sounds**: {audio elements}
+- **Smells**: {olfactory elements}
+
+## Notable Features
+
+{3-5 interesting elements}
+
+## Key NPCs
+
+{NPCs found here with links}
+
+## Connections
+
+{nearby locations, travel routes}
+
+## Potential Encounters
+
+{suggested encounters or conflicts}
+
+## Secrets
+
+{hidden features, adventure hooks}
+
+## Notes
+
+{additional notes}
+
+---
+
+*Created on {date}*
+```
+
+### Step 4: Update Index
+
+After creating the file, update the appropriate index:
+
+- For NPCs: Add entry to `campaign/npcs/index.md` under the correct role section
+- For Locations: Add entry to `campaign/locations/index.md`
+
+## Consistency Rules
+
+Always ensure:
+
+1. **No duplicate names** - Run `check-name` command before creating any entity
+2. **Setting consistency** - no anachronisms or genre-breaking elements
+3. **Tone matching** - match the established campaign tone (grim, heroic, comedic, etc.)
+4. **Logical geography** - locations should fit within established regions
+5. **Relationship coherence** - NPC connections should make narrative sense
+6. **Level-appropriate threats** - combat NPCs should be appropriate for party level
+
+### Validation Workflow
+
+Before creating a file:
+
+```bash
+# Check if name is available
+python scripts/campaign/campaign_manager.py check-name "Proposed Name"
+
+# If conflict found, suggest alternatives or ask user to choose a different name
+```
+
+## Example Interactions
+
+### Example 1: Minimal Input
+
+**User**: "I need a blacksmith NPC for the party to buy weapons from"
+
+**AI Response**:
+
+1. Read campaign context
+2. Check existing NPCs/locations
+3. Generate expanded blacksmith with:
+
+   - Thematic name fitting the setting
+   - Physical description with forge-related details
+   - Personality (gruff but fair, perfectionist, etc.)
+   - Connection to existing locations (suggest placing in known town)
+   - Special inventory or services
+   - A secret (former adventurer, hidden magical knowledge, etc.)
+
+### Example 2: Detailed Input
+
+**User**: "Create a location called the Whispering Caverns - it's a cave system where the walls seem to speak. It should be near Thornwick and have some connection to the missing miners plot."
+
+**AI Response**:
+
+1. Verify "Thornwick" exists in locations
+2. Check session history for "missing miners" context
+3. Generate location with:
+
+   - Sensory details emphasizing the whispering effect
+   - Explanation of the phenomenon (magical, creature-based, etc.)
+   - Connection to Thornwick (travel distance, path)
+   - NPCs: missing miners (alive or undead), creature responsible
+   - Encounters appropriate for party level
+   - Secrets tying to the larger plot
+
+## File Naming
+
+Use slugified names for filenames:
+
+- "Elara the Wise" → `elara-the-wise.md`
+- "The Dragon's Rest Inn" → `the-dragons-rest-inn.md`
+- Lowercase, hyphens instead of spaces, no special characters
