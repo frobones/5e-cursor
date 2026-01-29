@@ -1,0 +1,87 @@
+---
+description: "Guides efficient lookup of D&D 5e (2024) reference data from extracted indexes and markdown files"
+alwaysApply: false
+---
+
+# D&D Reference Data Lookup
+
+This project contains extracted D&D 5e (2024) reference data. Use these indexes for efficient lookups.
+
+## Lookup Strategy (Fastest to Slowest)
+
+1. **Grep JSON indexes** - For name-to-path lookups
+2. **Read quick-reference files** - For scanning key stats
+3. **Read cross-reference files** - For grouped lookups (by CR, rarity, etc.)
+4. **Read individual markdown files** - For full details
+
+## Index Files
+
+| File | Use Case |
+|------|----------|
+| `books/reference-index.json` | Name/type/path lookup for all 2,493 entries |
+| `books/keyword-index.json` | Semantic lookups (damage types, creature types, schools) |
+
+## Quick Reference Files
+
+| File | Contents |
+|------|----------|
+| `books/reference/spells/quick-reference.md` | 393 spells: level, school, time, range |
+| `books/reference/creatures/quick-reference.md` | 592 creatures: CR, type, size, HP, AC |
+| `books/reference/items/quick-reference.md` | 1,244 items: rarity, type, attunement |
+| `books/reference/equipment/quick-reference.md` | 264 equipment: type, cost, damage/AC |
+
+## Cross-Reference Files (`books/cross-references/`)
+
+- `creatures-by-cr.md` - Creatures grouped by Challenge Rating
+- `creatures-by-type.md` - Creatures grouped by type (Aberration, Beast, etc.)
+- `spells-by-level.md` - Spells grouped by level
+- `spells-by-school.md` - Spells grouped by school
+- `items-by-rarity.md` - Items grouped by rarity
+- `items-by-type.md` - Items grouped by type
+
+## Reference Categories
+
+| Category | Path | Count |
+|----------|------|-------|
+| Spells | `books/reference/spells/{level}/` | 393 |
+| Creatures | `books/reference/creatures/` | 592 |
+| Magic Items | `books/reference/items/` | 1,244 |
+| Equipment | `books/reference/equipment/` | 264 |
+| Classes | `books/reference/classes/` | 12 + 48 subclasses |
+| Feats | `books/reference/feats/` | 77 |
+| Backgrounds | `books/reference/backgrounds/` | 18 |
+| Species | `books/reference/species/` | 16 |
+| Rules/Conditions | `books/reference/rules/` | 161 |
+| Vehicles | `books/reference/vehicles/` | 17 |
+| Optional Features | `books/reference/optional-features/` | 58 |
+| Weapon Mastery | `books/reference/mastery/` | 8 |
+
+See `books/README.md` for complete list.
+
+## Example Lookups
+
+Find a spell by name:
+
+```bash
+grep -i "fireball" books/reference-index.json
+```
+
+Find all fire-related content:
+
+```bash
+grep -A 5 '"fire":' books/keyword-index.json
+```
+
+Find CR 5 creatures: Read `books/cross-references/creatures-by-cr.md` section "## CR 5"
+
+## Source Books
+
+- XPHB (Player's Handbook 2024)
+- XDMG (Dungeon Master's Guide 2024)
+- XMM (Monster Manual 2024)
+- AAG (Astral Adventurer's Guide)
+- BAM (Boo's Astral Menagerie)
+
+## Regenerating Data
+
+If `books/` is missing, run: `python scripts/extract_all.py`
