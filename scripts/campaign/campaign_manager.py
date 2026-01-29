@@ -8,6 +8,8 @@ Usage:
     python scripts/campaign/campaign_manager.py list-npcs
     python scripts/campaign/campaign_manager.py list-locations
     python scripts/campaign/campaign_manager.py show-npc "Elara the Wise"
+    python scripts/campaign/campaign_manager.py context
+    python scripts/campaign/campaign_manager.py check-name "Elara"
 """
 
 import argparse
@@ -24,6 +26,7 @@ from lib.markdown_writer import bold, heading, horizontal_rule, iso_date, slugif
 
 
 NPC_ROLES = ["ally", "neutral", "enemy", "unknown"]
+ENTITY_TYPES = ["npc", "location"]
 LOCATION_TYPES = ["city", "town", "village", "dungeon", "tavern", "shop", "temple", "wilderness", "landmark", "other"]
 
 
@@ -34,6 +37,10 @@ def create_npc(
     description: str = "",
     occupation: str = "",
     location: str = "",
+    personality: str = "",
+    voice: str = "",
+    secrets: str = "",
+    combat: str = "",
     notes: str = "",
 ) -> Path:
     """Create a new NPC file.
@@ -45,6 +52,10 @@ def create_npc(
         description: Physical description
         occupation: Job or role in the world
         location: Where the NPC can be found
+        personality: Personality traits, goals, motivations
+        voice: Voice, mannerisms, speaking style
+        secrets: Hidden information for DM reference
+        combat: Combat role or stat block reference
         notes: Additional notes
 
     Returns:
@@ -69,11 +80,21 @@ def create_npc(
 
 ## Personality
 
-*Add personality traits, mannerisms, goals, and secrets here...*
+{personality or "*Add personality traits, goals, and motivations here...*"}
+
+**Voice/Mannerisms**: {voice or "*Describe speaking style, quirks, or memorable phrases...*"}
 
 ## Connections
 
 *List relationships with other NPCs, factions, or the party...*
+
+## Secrets
+
+{secrets or "*Hidden information only the DM knows...*"}
+
+## Combat
+
+{combat or "*Non-combatant, or reference a stat block (e.g., use Veteran stats)...*"}
 
 ## Notes
 
@@ -94,6 +115,11 @@ def create_location(
     location_type: str = "other",
     description: str = "",
     region: str = "",
+    sights: str = "",
+    sounds: str = "",
+    smells: str = "",
+    encounters: str = "",
+    secrets: str = "",
     connections: Optional[list[str]] = None,
     notes: str = "",
 ) -> Path:
@@ -105,6 +131,11 @@ def create_location(
         location_type: Type of location
         description: Description of the location
         region: Region or area the location is in
+        sights: Visual details
+        sounds: Audio details
+        smells: Olfactory details
+        encounters: Potential encounters or conflicts
+        secrets: Hidden features or adventure hooks
         connections: Connected locations
         notes: Additional notes
 
@@ -133,6 +164,12 @@ def create_location(
 
 {description or "*Add description here...*"}
 
+## Sensory Details
+
+- **Sights**: {sights or "*What do visitors see?*"}
+- **Sounds**: {sounds or "*What do visitors hear?*"}
+- **Smells**: {smells or "*What do visitors smell?*"}
+
 ## Notable Features
 
 *List interesting features, landmarks, or points of interest...*
@@ -144,6 +181,14 @@ def create_location(
 ## Connections
 
 {connections_str}
+
+## Potential Encounters
+
+{encounters or "*What conflicts or creatures might be encountered here?*"}
+
+## Secrets
+
+{secrets or "*Hidden features, adventure hooks, or DM-only information...*"}
 
 ## Notes
 
@@ -286,10 +331,15 @@ def list_npcs(npcs_dir: Path) -> list[dict]:
         occ_match = re.search(r"\*\*Occupation\*\*: (.+?)  ", content)
         occupation = occ_match.group(1) if occ_match else "Unknown"
 
+        # Extract location
+        loc_match = re.search(r"\*\*Location\*\*: (.+?)(?:\s*\n|$)", content)
+        location = loc_match.group(1).strip() if loc_match else "Unknown"
+
         npcs.append({
             "name": name,
             "role": role,
             "occupation": occupation,
+            "location": location,
             "filename": npc_file.name,
             "path": npc_file,
         })
@@ -338,6 +388,221 @@ def list_locations(locations_dir: Path) -> list[dict]:
         })
 
     return locations
+
+
+def get_campaign_overview(campaign_dir: Path) -> dict:
+    """Extract campaign overview from campaign.md.
+
+    Args:
+        campaign_dir: Path to campaign directory
+
+    Returns:
+        Dict with campaign metadata
+    """
+    campaign_file = campaign_dir / "campaign.md"
+    if not campaign_file.exists():
+        return {"name": "Unknown", "setting": "", "themes": []}
+
+    content = campaign_file.read_text(encoding="utf-8")
+
+    # Extract name from heading
+    name_match = re.search(r"# (.+)", content)
+    name = name_match.group(1) if name_match else "Unknown"
+
+    # Extract setting
+    setting_match = re.search(r"\*\*Setting\*\*: (.+?)(?:\n|$)", content)
+    setting = setting_match.group(1).strip() if setting_match else ""
+
+    # Extract themes (look for a themes section or bullet list)
+    themes = []
+    themes_match = re.search(r"## Themes\s*\n((?:[-*] .+\n?)+)", content)
+    if themes_match:
+        themes = [line.strip("- *").strip() for line in themes_match.group(1).strip().split("\n")]
+
+    return {
+        "name": name,
+        "setting": setting,
+        "themes": themes,
+    }
+
+
+def get_recent_sessions(campaign_dir: Path, limit: int = 3) -> list[dict]:
+    """Get the most recent sessions.
+
+    Args:
+        campaign_dir: Path to campaign directory
+        limit: Maximum number of sessions to return
+
+    Returns:
+        List of recent session info dicts (newest first)
+    """
+    sessions_dir = campaign_dir / "sessions"
+    if not sessions_dir.exists():
+        return []
+
+    sessions = []
+    for session_file in sorted(sessions_dir.glob("session-*.md"), reverse=True):
+        if len(sessions) >= limit:
+            break
+
+        content = session_file.read_text(encoding="utf-8")
+
+        # Extract session number
+        match = re.search(r"session-(\d+)\.md", session_file.name)
+        if not match:
+            continue
+
+        session_num = int(match.group(1))
+
+        # Extract title from heading
+        title_match = re.search(r"# Session \d+: (.+)", content)
+        title = title_match.group(1) if title_match else "Untitled"
+
+        # Extract date
+        date_match = re.search(r"\*\*Date\*\*: (\d{4}-\d{2}-\d{2})", content)
+        session_date = date_match.group(1) if date_match else "Unknown"
+
+        sessions.append({
+            "number": session_num,
+            "title": title,
+            "date": session_date,
+        })
+
+    return sessions
+
+
+def get_campaign_context(campaign_dir: Path) -> dict:
+    """Get consolidated campaign context for AI consumption.
+
+    Args:
+        campaign_dir: Path to campaign directory
+
+    Returns:
+        Dict containing all campaign state
+    """
+    npcs_dir = campaign_dir / "npcs"
+    locations_dir = campaign_dir / "locations"
+
+    return {
+        "campaign": get_campaign_overview(campaign_dir),
+        "npcs": list_npcs(npcs_dir),
+        "locations": list_locations(locations_dir),
+        "recent_sessions": get_recent_sessions(campaign_dir),
+    }
+
+
+def format_campaign_context(context: dict) -> str:
+    """Format campaign context as markdown for AI consumption.
+
+    Args:
+        context: Campaign context dict from get_campaign_context()
+
+    Returns:
+        Formatted markdown string
+    """
+    lines = []
+
+    # Campaign overview
+    campaign = context["campaign"]
+    lines.append(f"# Campaign Context: {campaign['name']}")
+    lines.append("")
+    if campaign["setting"]:
+        lines.append(f"**Setting**: {campaign['setting']}")
+    if campaign["themes"]:
+        lines.append(f"**Themes**: {', '.join(campaign['themes'])}")
+    lines.append("")
+
+    # NPCs
+    npcs = context["npcs"]
+    lines.append(f"## NPCs ({len(npcs)} total)")
+    lines.append("")
+    if npcs:
+        lines.append("| Name | Role | Occupation | Location |")
+        lines.append("| ---- | ---- | ---------- | -------- |")
+        for npc in npcs:
+            loc = npc.get("location", "Unknown")
+            lines.append(f"| {npc['name']} | {npc['role']} | {npc['occupation']} | {loc} |")
+    else:
+        lines.append("*No NPCs created yet.*")
+    lines.append("")
+
+    # Locations
+    locations = context["locations"]
+    lines.append(f"## Locations ({len(locations)} total)")
+    lines.append("")
+    if locations:
+        lines.append("| Name | Type | Region |")
+        lines.append("| ---- | ---- | ------ |")
+        for loc in locations:
+            lines.append(f"| {loc['name']} | {loc['type']} | {loc['region']} |")
+    else:
+        lines.append("*No locations created yet.*")
+    lines.append("")
+
+    # Recent sessions
+    sessions = context["recent_sessions"]
+    lines.append(f"## Recent Sessions (last {len(sessions)})")
+    lines.append("")
+    if sessions:
+        for session in sessions:
+            lines.append(f"- **Session {session['number']}**: {session['title']} ({session['date']})")
+    else:
+        lines.append("*No sessions recorded yet.*")
+    lines.append("")
+
+    return "\n".join(lines)
+
+
+def check_name_conflict(campaign_dir: Path, name: str, entity_type: Optional[str] = None) -> dict:
+    """Check if a name conflicts with existing campaign entities.
+
+    Args:
+        campaign_dir: Path to campaign directory
+        name: Name to check
+        entity_type: Optional type to check ("npc", "location", or None for both)
+
+    Returns:
+        Dict with conflict info: {"has_conflict": bool, "conflicts": [...]}
+    """
+    conflicts = []
+    name_lower = name.lower()
+    name_slug = slugify(name)
+
+    # Check NPCs
+    if entity_type is None or entity_type == "npc":
+        npcs_dir = campaign_dir / "npcs"
+        for npc in list_npcs(npcs_dir):
+            npc_name_lower = npc["name"].lower()
+            npc_slug = slugify(npc["name"])
+
+            # Check for exact match, case-insensitive match, or slug collision
+            if (name_lower == npc_name_lower or name_slug == npc_slug):
+                conflicts.append({
+                    "type": "npc",
+                    "name": npc["name"],
+                    "file": npc["filename"],
+                    "reason": "exact match" if name_lower == npc_name_lower else "slug collision",
+                })
+
+    # Check Locations
+    if entity_type is None or entity_type == "location":
+        locations_dir = campaign_dir / "locations"
+        for loc in list_locations(locations_dir):
+            loc_name_lower = loc["name"].lower()
+            loc_slug = slugify(loc["name"])
+
+            if (name_lower == loc_name_lower or name_slug == loc_slug):
+                conflicts.append({
+                    "type": "location",
+                    "name": loc["name"],
+                    "file": loc["filename"],
+                    "reason": "exact match" if name_lower == loc_name_lower else "slug collision",
+                })
+
+    return {
+        "has_conflict": len(conflicts) > 0,
+        "conflicts": conflicts,
+    }
 
 
 def show_entity(entity_dir: Path, name: str) -> str:
@@ -392,6 +657,9 @@ Examples:
     python scripts/campaign/campaign_manager.py list-locations
     python scripts/campaign/campaign_manager.py show-npc "Elara"
     python scripts/campaign/campaign_manager.py show-location "Dragon's Rest"
+    python scripts/campaign/campaign_manager.py context
+    python scripts/campaign/campaign_manager.py check-name "Elara"
+    python scripts/campaign/campaign_manager.py check-name "Dragon's Rest" --type location
         """,
     )
 
@@ -404,6 +672,10 @@ Examples:
     add_npc_parser.add_argument("--description", "-d", default="", help="Physical description")
     add_npc_parser.add_argument("--occupation", "-o", default="", help="Occupation")
     add_npc_parser.add_argument("--location", "-l", default="", help="Where the NPC can be found")
+    add_npc_parser.add_argument("--personality", "-p", default="", help="Personality traits, goals, motivations")
+    add_npc_parser.add_argument("--voice", "-v", default="", help="Voice, mannerisms, speaking style")
+    add_npc_parser.add_argument("--secrets", "-s", default="", help="Hidden information for DM")
+    add_npc_parser.add_argument("--combat", "-c", default="", help="Combat role or stat block reference")
     add_npc_parser.add_argument("--notes", "-n", default="", help="Additional notes")
 
     # add-location command
@@ -412,6 +684,11 @@ Examples:
     add_loc_parser.add_argument("--type", "-t", choices=LOCATION_TYPES, default="other", help="Location type")
     add_loc_parser.add_argument("--description", "-d", default="", help="Description")
     add_loc_parser.add_argument("--region", "-r", default="", help="Region or area")
+    add_loc_parser.add_argument("--sights", default="", help="Visual details")
+    add_loc_parser.add_argument("--sounds", default="", help="Audio details")
+    add_loc_parser.add_argument("--smells", default="", help="Olfactory details")
+    add_loc_parser.add_argument("--encounters", "-e", default="", help="Potential encounters")
+    add_loc_parser.add_argument("--secrets", "-s", default="", help="Hidden features or hooks")
     add_loc_parser.add_argument("--notes", "-n", default="", help="Additional notes")
 
     # list-npcs command
@@ -427,6 +704,19 @@ Examples:
     # show-location command
     show_loc_parser = subparsers.add_parser("show-location", help="Show a location")
     show_loc_parser.add_argument("name", help="Location name")
+
+    # context command
+    subparsers.add_parser("context", help="Show campaign context summary for AI consumption")
+
+    # check-name command
+    check_name_parser = subparsers.add_parser("check-name", help="Check if a name conflicts with existing entities")
+    check_name_parser.add_argument("name", help="Name to check")
+    check_name_parser.add_argument(
+        "--type", "-t",
+        choices=ENTITY_TYPES,
+        default=None,
+        help="Entity type to check (npc, location, or omit for both)"
+    )
 
     args = parser.parse_args()
 
@@ -448,6 +738,10 @@ Examples:
             description=args.description,
             occupation=args.occupation,
             location=args.location,
+            personality=args.personality,
+            voice=args.voice,
+            secrets=args.secrets,
+            combat=args.combat,
             notes=args.notes,
         )
         update_npc_index(campaign_dir, args.name, args.role, npc_path.name)
@@ -461,6 +755,11 @@ Examples:
             location_type=args.type,
             description=args.description,
             region=args.region,
+            sights=args.sights,
+            sounds=args.sounds,
+            smells=args.smells,
+            encounters=args.encounters,
+            secrets=args.secrets,
             notes=args.notes,
         )
         update_location_index(campaign_dir, args.name, args.type, loc_path.name)
@@ -504,6 +803,22 @@ Examples:
     elif args.command == "show-location":
         content = show_entity(locations_dir, args.name)
         print(content)
+
+    elif args.command == "context":
+        context = get_campaign_context(campaign_dir)
+        print(format_campaign_context(context))
+
+    elif args.command == "check-name":
+        result = check_name_conflict(campaign_dir, args.name, args.type)
+
+        if result["has_conflict"]:
+            print(f"Name '{args.name}' has conflicts:")
+            for conflict in result["conflicts"]:
+                print(f"  - {conflict['type'].upper()}: {conflict['name']} ({conflict['file']}) - {conflict['reason']}")
+            sys.exit(1)
+        else:
+            print(f"Name '{args.name}' is available.")
+            sys.exit(0)
 
     else:
         parser.print_help()
