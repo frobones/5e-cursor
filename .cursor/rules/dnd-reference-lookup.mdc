@@ -20,14 +20,14 @@ This project contains extracted D&D 5e (2024) reference data. Use these indexes 
 ## Index Files
 
 | File | Use Case |
-|------|----------|
+| ---- | -------- |
 | `books/reference-index.json` | Name/type/path lookup for all 2,499 entries |
 | `books/keyword-index.json` | Semantic lookups (damage types, creature types, schools) |
 
 ## Quick Reference Files
 
 | File | Contents |
-|------|----------|
+| ---- | -------- |
 | `books/reference/spells/quick-reference.md` | 393 spells: level, school, time, range |
 | `books/reference/creatures/quick-reference.md` | 592 creatures: CR, type, size, HP, AC |
 | `books/reference/items/quick-reference.md` | 1,250 items: rarity, type, attunement |
@@ -45,7 +45,7 @@ This project contains extracted D&D 5e (2024) reference data. Use these indexes 
 ## Reference Categories
 
 | Category | Path | Count |
-|----------|------|-------|
+| -------- | ---- | ----- |
 | Spells | `books/reference/spells/{level}/` | 393 |
 | Creatures | `books/reference/creatures/` | 592 |
 | Magic Items | `books/reference/items/` | 1,250 |
@@ -85,6 +85,69 @@ Find CR 5 creatures: Read `books/cross-references/creatures-by-cr.md` section "#
 - AAG (Astral Adventurer's Guide)
 - BAM (Boo's Astral Menagerie)
 - EFA (Eberron: Forge of the Artificer - Artificer class, species, magic items only)
+
+## NPC Generation Lookups
+
+When generating NPCs, use these reference paths for inspiration:
+
+### Species Traits
+
+For physical descriptions based on species:
+
+```bash
+# Find species file
+grep -i "elf" books/reference-index.json | grep species
+
+# Read species for traits
+# books/reference/species/elf.md - height, weight, lifespan, physical features
+```
+
+Key species traits to extract:
+
+- Size and build ranges
+- Distinctive features (pointed ears, skin tones, etc.)
+- Lifespan and age appearance
+- Cultural tendencies
+
+### Class Archetypes
+
+For occupation and combat role inspiration:
+
+| Occupation Type | Reference Class |
+| --------------- | --------------- |
+| Soldier, guard | Fighter (`books/reference/classes/fighter/`) |
+| Healer, priest | Cleric (`books/reference/classes/cleric/`) |
+| Scholar, sage | Wizard (`books/reference/classes/wizard/`) |
+| Thief, spy | Rogue (`books/reference/classes/rogue/`) |
+| Performer | Bard (`books/reference/classes/bard/`) |
+| Ranger, hunter | Ranger (`books/reference/classes/ranger/`) |
+| Monk, martial artist | Monk (`books/reference/classes/monk/`) |
+
+### Background Inspiration
+
+For personality and backstory hooks:
+
+```bash
+# List all backgrounds
+grep -i "background" books/reference-index.json | head -20
+```
+
+Backgrounds provide: personality traits, ideals, bonds, flaws, and equipment.
+
+### Stat Block References
+
+For combat-relevant NPCs, reference existing creatures:
+
+| NPC Type | Suggested Stat Block |
+| -------- | -------------------- |
+| Town guard | Guard, Veteran |
+| Thug | Bandit, Thug |
+| Noble | Noble, Knight |
+| Mage | Mage, Archmage |
+| Priest | Priest, Acolyte |
+| Assassin | Assassin, Spy |
+
+Find stat blocks in `books/reference/creatures/`.
 
 ## Regenerating Data
 

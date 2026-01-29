@@ -31,7 +31,7 @@ python scripts/campaign/init_campaign.py "My Campaign Name"
 
 Or manually create the structure:
 
-```
+```text
 campaign/
 ├── campaign.md
 ├── party/
@@ -84,6 +84,7 @@ python scripts/campaign/encounter_builder.py --level 3 --size 4 --difficulty med
 ```
 
 Saved encounters appear in `campaign/encounters/` with:
+
 - Creature list with links to stat blocks
 - XP breakdown and difficulty calculation
 - Party threshold comparison
@@ -97,6 +98,7 @@ python scripts/campaign/rules_engine.py "What does the Prone condition do?"
 ```
 
 Response includes:
+
 - Inline-quoted text from the rules
 - Source file path for verification
 
@@ -109,6 +111,7 @@ python scripts/campaign/session_manager.py new "The Goblin Cave"
 ```
 
 This creates `campaign/sessions/session-001.md` (or next number) with:
+
 - Date and session number
 - Title
 - Empty summary section to fill in
@@ -120,21 +123,70 @@ Edit the file to add your session notes.
 The campaign data is optimized for Cursor AI assistance:
 
 ### Character Lookup
+
 "Look up Meilin's stats" → AI reads `campaign/party/characters/meilin-starwell.md`
 
 ### Encounter Building
+
 "Build a hard encounter for the party" → AI uses party index + encounter builder
 
 ### Rules Questions
+
 "Can I sneak attack with a hand crossbow?" → AI searches rules and character features
 
 ### Session Prep
+
 "What happened in the last session?" → AI reads latest session summary
+
+### AI-Assisted NPC & Location Generation
+
+Create rich, campaign-consistent NPCs and locations with AI assistance:
+
+**Creating an NPC:**
+
+Just describe what you need:
+
+- *"Create a blacksmith NPC for the party to buy weapons from"*
+- *"I need a mysterious innkeeper with a secret past"*
+- *"Add an enemy spy who has infiltrated the merchant guild"*
+
+The AI will:
+
+1. Check existing campaign context for consistency
+2. Validate the name doesn't conflict with existing entities
+3. Generate expanded details (description, personality, secrets, combat info)
+4. Present the NPC for your approval before creating the file
+
+**Creating a Location:**
+
+- *"Create a tavern called The Rusty Anchor in the port district"*
+- *"I need a dungeon entrance hidden in the forest near Thornwick"*
+- *"Add a temple to Pelor in the city center"*
+
+The AI will generate:
+
+- Sensory details (sights, sounds, smells)
+- Notable features and points of interest
+- Potential encounters
+- Connections to existing locations
+- Hidden secrets or adventure hooks
+
+**Helper Commands:**
+
+The AI can use these commands for better context:
+
+```bash
+# Get full campaign context (NPCs, locations, recent sessions)
+python scripts/campaign/campaign_manager.py context
+
+# Check if a name is available
+python scripts/campaign/campaign_manager.py check-name "Proposed Name"
+```
 
 ## Directory Reference
 
 | Path | Purpose |
-|------|---------|
+| ---- | ------- |
 | `books/reference/` | Extracted D&D reference data (read-only) |
 | `books/reference-index.json` | Name-to-path lookup for all references |
 | `campaign/` | Your campaign data (editable) |
@@ -158,6 +210,7 @@ make
 ### "Character not accessible"
 
 Ensure the D&D Beyond character is set to "Public" privacy:
+
 1. Go to your character on D&D Beyond
 2. Click the gear icon → Character Settings
 3. Set Privacy to "Public"
