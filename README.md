@@ -12,11 +12,17 @@ New to the project? Start with the [Introduction](docs/introduction.md) for a fr
 
 ## Quick Start
 
-```bash
-git clone https://github.com/frobones/5e-cursor.git
-cd 5e-cursor
-make
-```
+1. **Clone the repository** - In Cursor, click the **Clone Repository** button and paste:
+
+   ```text
+   https://github.com/frobones/5e-cursor.git
+   ```
+
+2. **Run setup** - Open the terminal (`` Ctrl+` ``) and run:
+
+   ```bash
+   make
+   ```
 
 That's it. `make` initializes the submodule and extracts all reference data.
 

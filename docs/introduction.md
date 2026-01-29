@@ -20,17 +20,33 @@ Your campaign lives in organized markdown files—party roster, NPCs, locations,
 
 Session tracking lets you record what happened each session. Later you can ask *"What happened in session 3?"* or *"When did we last see Captain Vex?"* and get answers based on your actual session notes. The AI maintains awareness of your party composition, NPC relationships, and campaign history—so suggestions stay consistent with your established world.
 
-## How It Works
+## Getting Started
 
-```bash
-git clone https://github.com/frobones/5e-cursor.git
-cd 5e-cursor
-make
-```
+1. **Download Cursor** - Get the free editor from [cursor.com](https://cursor.com)
 
-The extraction pulls from the 5etools submodule and creates ~2,500 indexed entries across spells, creatures, items, classes, feats, etc. Sources are fully configurable via `sources.yaml` or command line—use presets like `2024-core` or `spelljammer`, or specify individual source codes to pull exactly what you need.
+2. **Clone the repository** - In Cursor, click the **Clone Repository** button on the welcome screen and paste:
 
-Instead of memorizing commands, you just ask the AI things like *"Build a hard encounter for my party"* or *"How does the prone condition work?"* and it handles the lookups and tool invocations.
+   ```text
+   https://github.com/frobones/5e-cursor.git
+   ```
+
+3. **Run setup** - Open the Cursor terminal (`` Ctrl+` ``) and type:
+
+   ```bash
+   make
+   ```
+
+   This extracts all the D&D reference data (~2,500 entries across spells, creatures, items, classes, feats, etc.)
+
+4. **Start chatting** - Open the AI chat panel and ask things like:
+   - *"Initialize a campaign called Curse of Strahd"*
+   - *"Import my character from D&D Beyond: [paste your character URL]"*
+   - *"Build a hard encounter for my party"*
+   - *"How does the prone condition work?"*
+
+That's it. The AI handles the rest.
+
+Sources are fully configurable via `sources.yaml`—use presets like `2024-core` or `spelljammer`, or specify individual source codes to pull exactly what you need.
 
 ## Learn More
 
