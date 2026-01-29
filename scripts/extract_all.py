@@ -23,7 +23,8 @@ from extractors import (
     ClassExtractor, EquipmentExtractor, RulesExtractor,
     VehicleExtractor, OptionalFeatureExtractor, TrapExtractor,
     LanguageExtractor, BastionExtractor, DeityExtractor,
-    RewardExtractor, ObjectExtractor, DeckExtractor
+    RewardExtractor, ObjectExtractor, DeckExtractor,
+    SkillExtractor, ItemMasteryExtractor, EncounterExtractor, LootExtractor
 )
 
 # Repository root (parent of scripts/)
@@ -288,6 +289,10 @@ Individual entries for cross-referencing. Each entry has its own markdown file.
 | Rewards | Boons, blessings, charms | [reference/rewards/](reference/rewards/) |
 | Objects | Interactive objects | [reference/objects/](reference/objects/) |
 | Decks | Card decks (Deck of Many Things, etc.) | [reference/decks/](reference/decks/) |
+| Skills | All 18 skills | [reference/skills/](reference/skills/) |
+| Weapon Mastery | Cleave, Graze, Nick, etc. | [reference/mastery/](reference/mastery/) |
+| Encounters | Random encounter tables | [reference/encounters/](reference/encounters/) |
+| Loot Tables | Treasure tables | [reference/loot/](reference/loot/) |
 
 ---
 
@@ -377,6 +382,18 @@ def extract_creatures():
     if bam_creatures.exists():
         count = extractor.extract_file(str(bam_creatures))
         print(f"  BAM: {count} creatures")
+
+    # Extract from XPHB (summon spell stat blocks)
+    xphb_creatures = DATA_DIR / "bestiary" / "bestiary-xphb.json"
+    if xphb_creatures.exists():
+        count = extractor.extract_file(str(xphb_creatures))
+        print(f"  XPHB: {count} creatures")
+
+    # Extract from XDMG (Avatar of Death, etc.)
+    xdmg_creatures = DATA_DIR / "bestiary" / "bestiary-xdmg.json"
+    if xdmg_creatures.exists():
+        count = extractor.extract_file(str(xdmg_creatures))
+        print(f"  XDMG: {count} creatures")
 
     # Create index
     extractor.create_index()
@@ -525,11 +542,16 @@ def extract_rules():
 
     extractor = RulesExtractor(str(rules_dir))
 
-    # Extract conditions
+    # Extract conditions and status effects
     conditions_file = DATA_DIR / "conditionsdiseases.json"
     if conditions_file.exists():
         count = extractor.extract_conditions(str(conditions_file))
-        print(f"  Conditions: {count}")
+        print(f"  Conditions/Status: {count}")
+
+    # Extract diseases
+    if conditions_file.exists():
+        count = extractor.extract_diseases(str(conditions_file))
+        print(f"  Diseases: {count}")
 
     # Extract actions
     actions_file = DATA_DIR / "actions.json"
@@ -699,6 +721,70 @@ def extract_decks():
     print(f"  -> {decks_dir.relative_to(REPO_ROOT)}/")
 
 
+def extract_skills():
+    """Extract skills to individual files."""
+    print("Extracting skills...")
+    skills_dir = REFERENCE_DIR / "skills"
+
+    extractor = SkillExtractor(str(skills_dir))
+
+    skills_file = DATA_DIR / "skills.json"
+    if skills_file.exists():
+        count = extractor.extract_file(str(skills_file))
+        print(f"  Total: {count} skills")
+
+    extractor.create_index()
+    print(f"  -> {skills_dir.relative_to(REPO_ROOT)}/")
+
+
+def extract_item_mastery():
+    """Extract weapon mastery properties to individual files."""
+    print("Extracting weapon mastery...")
+    mastery_dir = REFERENCE_DIR / "mastery"
+
+    extractor = ItemMasteryExtractor(str(mastery_dir))
+
+    base_items_file = DATA_DIR / "items-base.json"
+    if base_items_file.exists():
+        count = extractor.extract_file(str(base_items_file))
+        print(f"  Total: {count} mastery properties")
+
+    extractor.create_index()
+    print(f"  -> {mastery_dir.relative_to(REPO_ROOT)}/")
+
+
+def extract_encounters():
+    """Extract encounter tables to individual files."""
+    print("Extracting encounters...")
+    encounters_dir = REFERENCE_DIR / "encounters"
+
+    extractor = EncounterExtractor(str(encounters_dir))
+
+    encounters_file = DATA_DIR / "encounters.json"
+    if encounters_file.exists():
+        count = extractor.extract_file(str(encounters_file))
+        print(f"  Total: {count} encounter tables")
+
+    extractor.create_index()
+    print(f"  -> {encounters_dir.relative_to(REPO_ROOT)}/")
+
+
+def extract_loot():
+    """Extract loot tables to individual files."""
+    print("Extracting loot tables...")
+    loot_dir = REFERENCE_DIR / "loot"
+
+    extractor = LootExtractor(str(loot_dir))
+
+    loot_file = DATA_DIR / "loot.json"
+    if loot_file.exists():
+        count = extractor.extract_file(str(loot_file))
+        print(f"  Total: {count} loot tables")
+
+    extractor.create_index()
+    print(f"  -> {loot_dir.relative_to(REPO_ROOT)}/")
+
+
 def main():
     print("=" * 60)
     print("D&D Book Extraction for Spelljammer Campaign")
@@ -783,6 +869,18 @@ def main():
     print()
 
     extract_decks()
+    print()
+
+    extract_skills()
+    print()
+
+    extract_item_mastery()
+    print()
+
+    extract_encounters()
+    print()
+
+    extract_loot()
     print()
 
     # Create README

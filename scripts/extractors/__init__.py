@@ -19,6 +19,10 @@ from .misc_extractor import (
     RewardExtractor,
     ObjectExtractor,
     DeckExtractor,
+    SkillExtractor,
+    ItemMasteryExtractor,
+    EncounterExtractor,
+    LootExtractor,
 )
 
 __all__ = [
@@ -40,4 +44,8 @@ __all__ = [
     'RewardExtractor',
     'ObjectExtractor',
     'DeckExtractor',
+    'SkillExtractor',
+    'ItemMasteryExtractor',
+    'EncounterExtractor',
+    'LootExtractor',
 ]

@@ -667,3 +667,426 @@ class DeckExtractor:
 
         with open(self.output_dir / 'index.md', 'w', encoding='utf-8') as f:
             f.write("\n".join(parts))
+
+
+class SkillExtractor:
+    """Extracts skills to individual markdown files."""
+
+    def __init__(self, output_dir: str, sources: Optional[list] = None):
+        self.output_dir = Path(output_dir)
+        self.sources = set(s.upper() for s in sources) if sources else ALLOWED_SOURCES
+        self.converter = EntryConverter(heading_level=2)
+        self.index_entries = []
+
+    def extract_file(self, source_path: str) -> int:
+        with open(source_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+        count = 0
+
+        for skill in data.get('skill', []):
+            if not isinstance(skill, dict):
+                continue
+            source = skill.get('source', '').upper()
+            if source not in self.sources:
+                continue
+            self._extract_entry(skill)
+            count += 1
+
+        return count
+
+    def _extract_entry(self, skill: dict) -> None:
+        name = skill.get('name', 'Unknown')
+        safe_name = make_safe_filename(name)
+        filename = f"{safe_name}.md"
+        filepath = self.output_dir / filename
+
+        parts = []
+        parts.append(f"# {name}")
+        parts.append("")
+
+        ability = skill.get('ability', [])
+        if ability:
+            parts.append(f"*{', '.join(ability).upper()} Skill*")
+        else:
+            parts.append("*Skill*")
+        parts.append("")
+
+        source = skill.get('source', '')
+        page = skill.get('page', '')
+        if source:
+            source_str = f"**Source:** {source}"
+            if page:
+                source_str += f", page {page}"
+            parts.append(source_str)
+            parts.append("")
+
+        parts.append("---")
+        parts.append("")
+
+        entries = skill.get('entries', [])
+        if entries:
+            content = self.converter.convert(entries, 0)
+            if content:
+                parts.append(content)
+
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write("\n".join(parts))
+
+        self.index_entries.append({
+            'name': name,
+            'ability': ', '.join(ability).upper() if ability else '-',
+            'source': source,
+            'path': filename,
+        })
+
+    def create_index(self) -> None:
+        parts = ["# Skills Index", ""]
+        parts.append(f"**Total Skills:** {len(self.index_entries)}")
+        parts.append("")
+        parts.append("| Skill | Ability | Source |")
+        parts.append("| ----- | ------- | ------ |")
+
+        for s in sorted(self.index_entries, key=lambda x: x['name']):
+            parts.append(f"| [{s['name']}]({s['path']}) | {s['ability']} | {s['source']} |")
+
+        parts.append("")
+
+        with open(self.output_dir / 'index.md', 'w', encoding='utf-8') as f:
+            f.write("\n".join(parts))
+
+
+class ItemMasteryExtractor:
+    """Extracts weapon mastery properties to individual markdown files."""
+
+    def __init__(self, output_dir: str, sources: Optional[list] = None):
+        self.output_dir = Path(output_dir)
+        self.sources = set(s.upper() for s in sources) if sources else ALLOWED_SOURCES
+        self.converter = EntryConverter(heading_level=2)
+        self.index_entries = []
+
+    def extract_file(self, source_path: str) -> int:
+        with open(source_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+        count = 0
+
+        for mastery in data.get('itemMastery', []):
+            if not isinstance(mastery, dict):
+                continue
+            source = mastery.get('source', '').upper()
+            if source not in self.sources:
+                continue
+            self._extract_entry(mastery)
+            count += 1
+
+        return count
+
+    def _extract_entry(self, mastery: dict) -> None:
+        name = mastery.get('name', 'Unknown')
+        safe_name = make_safe_filename(name)
+        filename = f"{safe_name}.md"
+        filepath = self.output_dir / filename
+
+        parts = []
+        parts.append(f"# {name}")
+        parts.append("")
+        parts.append("*Weapon Mastery Property*")
+        parts.append("")
+
+        source = mastery.get('source', '')
+        page = mastery.get('page', '')
+        if source:
+            source_str = f"**Source:** {source}"
+            if page:
+                source_str += f", page {page}"
+            parts.append(source_str)
+            parts.append("")
+
+        parts.append("---")
+        parts.append("")
+
+        entries = mastery.get('entries', [])
+        if entries:
+            content = self.converter.convert(entries, 0)
+            if content:
+                parts.append(content)
+
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write("\n".join(parts))
+
+        self.index_entries.append({
+            'name': name,
+            'source': source,
+            'path': filename,
+        })
+
+    def create_index(self) -> None:
+        parts = ["# Weapon Mastery Index", ""]
+        parts.append(f"**Total Mastery Properties:** {len(self.index_entries)}")
+        parts.append("")
+        parts.append("| Mastery | Source |")
+        parts.append("| ------- | ------ |")
+
+        for m in sorted(self.index_entries, key=lambda x: x['name']):
+            parts.append(f"| [{m['name']}]({m['path']}) | {m['source']} |")
+
+        parts.append("")
+
+        with open(self.output_dir / 'index.md', 'w', encoding='utf-8') as f:
+            f.write("\n".join(parts))
+
+
+class EncounterExtractor:
+    """Extracts encounter tables to markdown files."""
+
+    def __init__(self, output_dir: str, sources: Optional[list] = None):
+        self.output_dir = Path(output_dir)
+        self.sources = set(s.upper() for s in sources) if sources else ALLOWED_SOURCES
+        self.converter = EntryConverter(heading_level=2)
+        self.index_entries = []
+
+    def extract_file(self, source_path: str) -> int:
+        with open(source_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+        count = 0
+
+        for encounter in data.get('encounter', []):
+            if not isinstance(encounter, dict):
+                continue
+            source = encounter.get('source', '').upper()
+            if source not in self.sources:
+                continue
+            self._extract_entry(encounter)
+            count += 1
+
+        return count
+
+    def _extract_entry(self, encounter: dict) -> None:
+        name = encounter.get('name', 'Unknown')
+        safe_name = make_safe_filename(name)
+        filename = f"{safe_name}.md"
+        filepath = self.output_dir / filename
+
+        parts = []
+        parts.append(f"# {name}")
+        parts.append("")
+        parts.append("*Random Encounter Table*")
+        parts.append("")
+
+        source = encounter.get('source', '')
+        page = encounter.get('page', '')
+        if source:
+            source_str = f"**Source:** {source}"
+            if page:
+                source_str += f", page {page}"
+            parts.append(source_str)
+            parts.append("")
+
+        parts.append("---")
+        parts.append("")
+
+        # Format encounter table
+        tables = encounter.get('tables', [])
+        for table in tables:
+            if isinstance(table, dict):
+                table_name = table.get('caption', table.get('name', ''))
+                if table_name:
+                    parts.append(f"## {table_name}")
+                    parts.append("")
+
+                # Format die roll and encounters
+                max_roll = table.get('maxRoll', 20)
+                parts.append(f"**Roll:** d{max_roll}")
+                parts.append("")
+
+                rows = table.get('rows', [])
+                if rows:
+                    parts.append("| Roll | Encounter |")
+                    parts.append("| ---- | --------- |")
+                    for row in rows:
+                        if isinstance(row, dict):
+                            roll_range = row.get('roll', '')
+                            if isinstance(roll_range, dict):
+                                roll_str = f"{roll_range.get('min', '')}-{roll_range.get('max', '')}"
+                            else:
+                                roll_str = str(roll_range)
+                            result = row.get('result', '')
+                            if isinstance(result, list):
+                                result = ', '.join(str(r) for r in result)
+                            parts.append(f"| {roll_str} | {result} |")
+                    parts.append("")
+
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write("\n".join(parts))
+
+        self.index_entries.append({
+            'name': name,
+            'source': source,
+            'path': filename,
+        })
+
+    def create_index(self) -> None:
+        parts = ["# Encounter Tables Index", ""]
+        parts.append(f"**Total Tables:** {len(self.index_entries)}")
+        parts.append("")
+        parts.append("| Table | Source |")
+        parts.append("| ----- | ------ |")
+
+        for e in sorted(self.index_entries, key=lambda x: x['name']):
+            parts.append(f"| [{e['name']}]({e['path']}) | {e['source']} |")
+
+        parts.append("")
+
+        with open(self.output_dir / 'index.md', 'w', encoding='utf-8') as f:
+            f.write("\n".join(parts))
+
+
+class LootExtractor:
+    """Extracts loot/treasure tables to markdown files."""
+
+    def __init__(self, output_dir: str, sources: Optional[list] = None):
+        self.output_dir = Path(output_dir)
+        self.sources = set(s.upper() for s in sources) if sources else ALLOWED_SOURCES
+        self.converter = EntryConverter(heading_level=2)
+        self.index_entries = []
+
+    def extract_file(self, source_path: str) -> int:
+        with open(source_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+        count = 0
+
+        # Extract different loot table types
+        for table_type in ['individual', 'hoard', 'gems', 'artObjects', 'magicItems']:
+            tables = data.get(table_type, [])
+            for table in tables:
+                if not isinstance(table, dict):
+                    continue
+                source = table.get('source', '').upper()
+                if source not in self.sources:
+                    continue
+                self._extract_entry(table, table_type)
+                count += 1
+
+        return count
+
+    def _extract_entry(self, table: dict, table_type: str) -> None:
+        name = table.get('name', f'{table_type.title()} Table')
+        safe_name = make_safe_filename(name)
+        filename = f"{safe_name}.md"
+        filepath = self.output_dir / filename
+
+        type_names = {
+            'individual': 'Individual Treasure',
+            'hoard': 'Treasure Hoard',
+            'gems': 'Gemstones',
+            'artObjects': 'Art Objects',
+            'magicItems': 'Magic Item Table',
+        }
+
+        parts = []
+        parts.append(f"# {name}")
+        parts.append("")
+        parts.append(f"*{type_names.get(table_type, 'Loot Table')}*")
+        parts.append("")
+
+        source = table.get('source', '')
+        page = table.get('page', '')
+        if source:
+            source_str = f"**Source:** {source}"
+            if page:
+                source_str += f", page {page}"
+            parts.append(source_str)
+            parts.append("")
+
+        parts.append("---")
+        parts.append("")
+
+        # Format table rows
+        rows = table.get('rows', table.get('table', []))
+        if rows:
+            # Try to determine column headers
+            if table_type in ['gems', 'artObjects']:
+                parts.append("| Value | Description |")
+                parts.append("| ----- | ----------- |")
+            elif table_type == 'magicItems':
+                parts.append("| d100 | Item |")
+                parts.append("| ---- | ---- |")
+            else:
+                parts.append("| Roll | Result |")
+                parts.append("| ---- | ------ |")
+
+            for row in rows:
+                if isinstance(row, dict):
+                    # Handle different row formats
+                    min_roll = row.get('min', row.get('roll', ''))
+                    max_roll = row.get('max', '')
+                    if min_roll and max_roll and min_roll != max_roll:
+                        roll_str = f"{min_roll}-{max_roll}"
+                    else:
+                        roll_str = str(min_roll) if min_roll else '-'
+
+                    result = row.get('result', row.get('item', row.get('name', '')))
+                    if isinstance(result, list):
+                        result = ', '.join(str(r) for r in result)
+                    elif isinstance(result, dict):
+                        result = result.get('name', str(result))
+
+                    parts.append(f"| {roll_str} | {result} |")
+                elif isinstance(row, list) and len(row) >= 2:
+                    parts.append(f"| {row[0]} | {row[1]} |")
+
+            parts.append("")
+
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write("\n".join(parts))
+
+        self.index_entries.append({
+            'name': name,
+            'type': table_type,
+            'source': source,
+            'path': filename,
+        })
+
+    def create_index(self) -> None:
+        parts = ["# Loot Tables Index", ""]
+        parts.append(f"**Total Tables:** {len(self.index_entries)}")
+        parts.append("")
+
+        # Group by type
+        by_type = {}
+        for t in self.index_entries:
+            ttype = t['type']
+            if ttype not in by_type:
+                by_type[ttype] = []
+            by_type[ttype].append(t)
+
+        type_names = {
+            'individual': 'Individual Treasure',
+            'hoard': 'Treasure Hoards',
+            'gems': 'Gemstones',
+            'artObjects': 'Art Objects',
+            'magicItems': 'Magic Item Tables',
+        }
+
+        for ttype in ['individual', 'hoard', 'gems', 'artObjects', 'magicItems']:
+            if ttype not in by_type:
+                continue
+            parts.append(f"## {type_names.get(ttype, ttype)}")
+            parts.append("")
+            parts.append("| Table | Source |")
+            parts.append("| ----- | ------ |")
+
+            for t in sorted(by_type[ttype], key=lambda x: x['name']):
+                parts.append(f"| [{t['name']}]({t['path']}) | {t['source']} |")
+
+            parts.append("")
+
+        with open(self.output_dir / 'index.md', 'w', encoding='utf-8') as f:
+            f.write("\n".join(parts))

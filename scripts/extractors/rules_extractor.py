@@ -32,6 +32,7 @@ class RulesExtractor:
         self.converter = EntryConverter(heading_level=2)
         self.index_entries = {
             'conditions': [],
+            'diseases': [],
             'actions': [],
             'senses': [],
             'glossary': [],
@@ -67,6 +68,28 @@ class RulesExtractor:
                 continue
 
             self._extract_entry(status, conditions_dir, 'Status', 'conditions')
+            count += 1
+
+        return count
+
+    def extract_diseases(self, source_path: str) -> int:
+        """Extract diseases from conditionsdiseases.json."""
+        with open(source_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        diseases_dir = self.output_dir / 'diseases'
+        diseases_dir.mkdir(parents=True, exist_ok=True)
+        count = 0
+
+        for disease in data.get('disease', []):
+            if not isinstance(disease, dict):
+                continue
+
+            source = disease.get('source', '').upper()
+            if source not in self.sources:
+                continue
+
+            self._extract_entry(disease, diseases_dir, 'Disease', 'diseases')
             count += 1
 
         return count
@@ -355,6 +378,20 @@ class RulesExtractor:
             parts.append("| Condition | Type | Source |")
             parts.append("| --------- | ---- | ------ |")
             for entry in sorted(self.index_entries['conditions'], key=lambda x: x['name']):
+                name = entry['name']
+                etype = entry['type']
+                source = entry['source']
+                path = entry['path']
+                parts.append(f"| [{name}]({path}) | {etype} | {source} |")
+            parts.append("")
+
+        # Diseases
+        if self.index_entries['diseases']:
+            parts.append("## Diseases")
+            parts.append("")
+            parts.append("| Disease | Type | Source |")
+            parts.append("| ------- | ---- | ------ |")
+            for entry in sorted(self.index_entries['diseases'], key=lambda x: x['name']):
                 name = entry['name']
                 etype = entry['type']
                 source = entry['source']
