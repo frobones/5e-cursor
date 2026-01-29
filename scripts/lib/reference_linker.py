@@ -10,6 +10,19 @@ from pathlib import Path
 from typing import Optional
 
 
+# Map legacy/common terms to their 2024 equivalents
+LEGACY_ALIASES = {
+    # Monk features (Ki -> Focus in 2024 rules)
+    "ki": "monk's focus",
+    "ki points": "focus points",
+    "ki save": "monk's focus",
+    # Common shorthand
+    "sneak attack damage": "sneak attack",
+    "bardic inspiration die": "bardic inspiration",
+    "smite": "divine smite",
+}
+
+
 class ReferenceLinker:
     """Links entity names to reference file paths."""
 
@@ -178,26 +191,44 @@ class ReferenceLinker:
             List of matching entries (exact matches first, then partial)
         """
         normalized_query = self._normalize(query)
+
+        # Check for legacy aliases and expand search terms
+        search_terms = [normalized_query]
+        query_lower = query.lower().strip()
+        if query_lower in LEGACY_ALIASES:
+            alias_target = LEGACY_ALIASES[query_lower]
+            normalized_alias = self._normalize(alias_target)
+            if normalized_alias not in search_terms:
+                search_terms.append(normalized_alias)
+
         exact_matches = []
         partial_matches = []
+        seen_paths = set()
 
-        for normalized_name, entries in self._index.items():
-            if normalized_query == normalized_name:
-                # Exact match - highest priority
-                for entry in entries:
-                    if entry_type is None or entry.get("type") == entry_type:
-                        exact_matches.append(entry)
-            elif normalized_query in normalized_name:
-                # Partial match - lower priority
-                for entry in entries:
-                    if entry_type is None or entry.get("type") == entry_type:
-                        partial_matches.append(entry)
+        for search_term in search_terms:
+            for normalized_name, entries in self._index.items():
+                if search_term == normalized_name:
+                    # Exact match - highest priority
+                    for entry in entries:
+                        path = entry.get("path", "")
+                        if path in seen_paths:
+                            continue
+                        if entry_type is None or entry.get("type") == entry_type:
+                            exact_matches.append(entry)
+                            seen_paths.add(path)
+                elif search_term in normalized_name:
+                    # Partial match - lower priority
+                    for entry in entries:
+                        path = entry.get("path", "")
+                        if path in seen_paths:
+                            continue
+                        if entry_type is None or entry.get("type") == entry_type:
+                            partial_matches.append(entry)
+                            seen_paths.add(path)
 
         # Return exact matches first, then partial, up to limit
         results = exact_matches + partial_matches
         return results[:limit]
-
-        return results
 
 
 # Module-level instance for convenience

@@ -19,7 +19,7 @@ from typing import Optional
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from lib.reference_linker import ReferenceLinker
+from lib.reference_linker import ReferenceLinker, LEGACY_ALIASES
 
 
 @dataclass
@@ -195,9 +195,11 @@ def search_rules(
             if path in seen_paths:
                 continue
 
-            # Check for fuzzy match on name
+            # Check for fuzzy match on name (also check alias target if applicable)
             name = entry.get("name", "")
-            if not fuzzy_match(keyword, name):
+            keyword_lower = keyword.lower()
+            alias_target = LEGACY_ALIASES.get(keyword_lower, "")
+            if not fuzzy_match(keyword, name) and not fuzzy_match(alias_target, name):
                 continue
 
             seen_paths.add(path)
