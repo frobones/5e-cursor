@@ -175,18 +175,27 @@ class ReferenceLinker:
             limit: Maximum results to return
 
         Returns:
-            List of matching entries
+            List of matching entries (exact matches first, then partial)
         """
         normalized_query = self._normalize(query)
-        results = []
+        exact_matches = []
+        partial_matches = []
 
         for normalized_name, entries in self._index.items():
-            if normalized_query in normalized_name:
+            if normalized_query == normalized_name:
+                # Exact match - highest priority
                 for entry in entries:
                     if entry_type is None or entry.get("type") == entry_type:
-                        results.append(entry)
-                        if len(results) >= limit:
-                            return results
+                        exact_matches.append(entry)
+            elif normalized_query in normalized_name:
+                # Partial match - lower priority
+                for entry in entries:
+                    if entry_type is None or entry.get("type") == entry_type:
+                        partial_matches.append(entry)
+
+        # Return exact matches first, then partial, up to limit
+        results = exact_matches + partial_matches
+        return results[:limit]
 
         return results
 
