@@ -21,6 +21,9 @@ As a DM, I want to import player characters directly from D&D Beyond so that I h
 2. **Given** an imported character with class features, **When** viewing the character sheet, **Then** each class feature links to the corresponding reference file in `books/reference/classes/`
 3. **Given** an imported character with spells, **When** viewing the character sheet, **Then** each spell links to the corresponding reference file in `books/reference/spells/`
 4. **Given** a private or invalid D&D Beyond URL, **When** I request character import, **Then** the system provides a clear error message explaining the issue
+5. **Given** previously imported characters, **When** I request a character update, **Then** the system refetches data from D&D Beyond and regenerates the character sheet with current data
+6. **Given** multiple imported characters, **When** I request to update all characters, **Then** all character sheets are refreshed from D&D Beyond in batch
+7. **Given** imported characters, **When** I list them, **Then** I see each character's name, D&D Beyond ID, and last update date
 
 ---
 
@@ -111,6 +114,10 @@ As a DM, I want AI assistance when creating NPCs and locations so that I can pro
 
 - What happens when D&D Beyond character has homebrew content not in our reference data?
   - System imports the character but marks unlinked items with "[No Reference]" notation
+- What happens when a character is updated but their name changed in D&D Beyond?
+  - The local file retains its original filename; character name in content is updated; user can manually rename file if desired
+- What happens when a previously imported character is now private or deleted?
+  - Update fails with clear error message; existing local file is preserved unchanged
 - What happens when party composition changes mid-campaign?
   - Encounter builder always uses current party state; historical encounters retain their original values
 - How does the system handle multiclass characters?
@@ -131,6 +138,9 @@ As a DM, I want AI assistance when creating NPCs and locations so that I can pro
 - **FR-001**: System MUST import characters from D&D Beyond public character URLs via the character API
 - **FR-002**: System MUST convert D&D Beyond JSON to markdown character sheets in standardized format
 - **FR-003**: System MUST auto-link character features, spells, and items to extracted reference files
+- **FR-003a**: System MUST embed D&D Beyond source URL in character files for update tracking
+- **FR-003b**: System MUST support refreshing character data from D&D Beyond for previously imported characters
+- **FR-003c**: System MUST support batch updates for all imported characters
 - **FR-004**: System MUST calculate encounter difficulty using DMG XP thresholds for Easy/Medium/Hard/Deadly
 - **FR-005**: System MUST filter creatures by CR, type, and environment when generating encounters
 - **FR-006**: System MUST provide rules answers with inline-quoted text from extracted rules files

@@ -97,20 +97,29 @@ See `books/README.md` for the complete list after extraction.
 ```text
 5e-cursor/
 ├── 5etools-src/              # Git submodule (5etools data)
-├── books/                    # Extracted content (gitignored)
-│   ├── core/                 # Core rulebooks
-│   ├── spelljammer/          # Setting & adventures
-│   ├── eberron/              # EFA (Artificer)
-│   ├── reference/            # Individual entries
-│   ├── cross-references/     # Grouped tables
-│   ├── reference-index.json  # Master index
-│   └── keyword-index.json    # Keyword lookups
+├── books/                    # Extracted reference content (gitignored)
+│   ├── core/                 # Core rulebooks (XPHB, XDMG, XMM)
+│   ├── reference/            # Individual entries (spells, creatures, etc.)
+│   ├── cross-references/     # Grouped tables (by CR, spell level, etc.)
+│   ├── reference-index.json  # Master name-to-path index
+│   └── keyword-index.json    # Semantic keyword lookups
+├── campaign/                 # Your campaign data (gitignored)
+│   ├── party/characters/     # Imported character sheets
+│   ├── npcs/                 # Campaign NPCs
+│   ├── locations/            # Campaign locations
+│   ├── sessions/             # Session summaries
+│   └── encounters/           # Saved encounters
 ├── scripts/
-│   ├── extract_all.py        # Main extraction script
-│   ├── extract_book.py       # Book extraction library
-│   └── extractors/           # Category extractors
+│   ├── extract_all.py        # Reference data extraction
+│   ├── extractors/           # Category extractors
+│   ├── campaign/             # Campaign management tools
+│   │   ├── import_character.py
+│   │   ├── encounter_builder.py
+│   │   ├── rules_engine.py
+│   │   ├── session_manager.py
+│   │   └── campaign_manager.py
+│   └── lib/                  # Shared utilities
 ├── .cursor/rules/            # Cursor AI rules
-├── .cursorignore             # Excludes 5etools-src from Cursor
 ├── Makefile                  # Build commands
 └── README.md
 ```
@@ -140,6 +149,7 @@ Instead of running commands, simply tell the AI what you need:
 | You Say | The AI Does |
 | ------- | ----------- |
 | *"Import my character from D&D Beyond: [url]"* | Fetches character, creates linked markdown sheet |
+| *"Update all my characters from D&D Beyond"* | Refreshes character data from D&D Beyond |
 | *"Build a hard encounter for my party"* | Reads party level/size, generates balanced encounter |
 | *"How does the prone condition work?"* | Looks up rules with inline citations |
 | *"Create a new session called 'Into the Underdark'"* | Creates session file, updates session log |
@@ -181,6 +191,7 @@ Or just ask the AI: *"Initialize a campaign called Spelljammer Adventures"*
 | Capability | Description |
 | ---------- | ----------- |
 | **Character Import** | Pull full character sheets from D&D Beyond with auto-linked features |
+| **Character Update** | Refresh imported characters from D&D Beyond (single or batch) |
 | **Encounter Building** | Generate balanced encounters using DMG XP thresholds |
 | **Rules Arbitration** | Answer rules questions with inline quotes and source citations |
 | **Session Tracking** | Create and review session summaries |
@@ -215,24 +226,38 @@ campaign/
 The AI uses these tools automatically, but you can also run them directly:
 
 ```bash
-# Character import
-python scripts/campaign/import_character.py <dndbeyond-url>
+# Campaign initialization
+python scripts/campaign/init_campaign.py "Campaign Name"
+
+# Character management
+python scripts/campaign/import_character.py import <url>      # Import from D&D Beyond
+python scripts/campaign/import_character.py list              # List all characters
+python scripts/campaign/import_character.py update "Name"     # Update one character
+python scripts/campaign/import_character.py update --all      # Update all characters
 
 # Encounter builder
 python scripts/campaign/encounter_builder.py --auto --difficulty hard
+python scripts/campaign/encounter_builder.py --level 5 --size 4 --type undead
 
 # Rules lookup
-python scripts/campaign/rules_engine.py --spell "fireball"
+python scripts/campaign/rules_engine.py "prone condition"     # Natural language query
+python scripts/campaign/rules_engine.py --spell "fireball"    # Direct spell lookup
+python scripts/campaign/rules_engine.py --condition "stunned" # Direct condition lookup
 
 # Session management
 python scripts/campaign/session_manager.py new "Session Title"
+python scripts/campaign/session_manager.py list
+python scripts/campaign/session_manager.py show 3
 
-# Campaign management
+# NPC and location management
 python scripts/campaign/campaign_manager.py add-npc "Name" --role ally
+python scripts/campaign/campaign_manager.py add-location "Place" --type tavern
+python scripts/campaign/campaign_manager.py list-npcs
+python scripts/campaign/campaign_manager.py list-locations
 
-# AI support commands
-python scripts/campaign/campaign_manager.py context      # Campaign summary for AI
-python scripts/campaign/campaign_manager.py check-name "Name"  # Validate name availability
+# AI support (context gathering)
+python scripts/campaign/campaign_manager.py context           # Campaign summary
+python scripts/campaign/campaign_manager.py check-name "Name" # Validate availability
 ```
 
 ## License

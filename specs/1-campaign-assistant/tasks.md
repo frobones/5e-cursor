@@ -74,6 +74,33 @@
 
 ---
 
+## Phase 3b: User Story 1 Extension - Character Update Command
+
+**Goal**: Track imported characters and enable batch refresh from D&D Beyond
+
+**Status**: ✅ COMPLETE
+
+### Tests for Character Update
+
+- [x] T067 [P] [US1] Add tests for `extract_dndbeyond_id_from_file()` to `tests/test_import_character.py`
+- [x] T068 [P] [US1] Add tests for `list_imported_characters()` to `tests/test_import_character.py`
+- [x] T069 [P] [US1] Add tests for `update_character()` to `tests/test_import_character.py`
+
+### Implementation for Character Update
+
+- [x] T070 [US1] Add "Last updated" metadata line to character markdown footer in `generate_character_markdown()`
+- [x] T071 [US1] Implement `extract_dndbeyond_id_from_file(path)` to parse source URL from markdown
+- [x] T072 [US1] Implement `list_imported_characters(party_dir)` to enumerate characters with D&D Beyond IDs
+- [x] T073 [US1] Implement `update_character(path, linker)` to refetch and regenerate a single character
+- [x] T074 [US1] Implement `update_all_characters(party_dir, linker)` for batch updates
+- [x] T075 [US1] Refactor CLI to use subcommands: `import`, `update`, `list`
+- [x] T076 [US1] Add `--all` flag to update subcommand for batch refresh
+- [x] T077 [US1] Add `--dry-run` flag to preview which characters would be updated
+
+**Checkpoint**: Character update complete - can refresh imported characters from D&D Beyond
+
+---
+
 ## Phase 4: User Story 2 - Build Balanced Encounters (Priority: P2)
 
 **Goal**: Generate balanced encounters using DMG XP thresholds based on party composition

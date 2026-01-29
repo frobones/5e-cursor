@@ -1,16 +1,21 @@
 #!/usr/bin/env python3
 """
-Import a character from D&D Beyond.
+Import and manage characters from D&D Beyond.
 
 Usage:
-    python scripts/campaign/import_character.py https://www.dndbeyond.com/characters/157884334
-    python scripts/campaign/import_character.py 157884334
+    python scripts/campaign/import_character.py import https://www.dndbeyond.com/characters/157884334
+    python scripts/campaign/import_character.py import 157884334
+    python scripts/campaign/import_character.py list
+    python scripts/campaign/import_character.py update "Character Name"
+    python scripts/campaign/import_character.py update --all
 """
 
 import argparse
+import re
 import sys
 from datetime import date
 from pathlib import Path
+from typing import Optional
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -86,13 +91,19 @@ def format_modifier(mod: int) -> str:
     return f"+{mod}" if mod >= 0 else str(mod)
 
 
-def generate_character_markdown(char: Character, linker: ReferenceLinker, from_path: str) -> str:
+def generate_character_markdown(
+    char: Character,
+    linker: ReferenceLinker,
+    from_path: str,
+    imported_date: Optional[str] = None,
+) -> str:
     """Generate markdown content for a character sheet.
 
     Args:
         char: Parsed character data
         linker: Reference linker for creating links
         from_path: Path of the output file (for relative link calculation)
+        imported_date: Original import date (for updates); if None, uses today
 
     Returns:
         Markdown content string
@@ -346,7 +357,9 @@ def generate_character_markdown(char: Character, linker: ReferenceLinker, from_p
     # Footer
     lines.append(horizontal_rule())
     lines.append("")
-    lines.append(f"*Imported from D&D Beyond on {iso_date()}*  ")
+    original_date = imported_date if imported_date else iso_date()
+    lines.append(f"*Imported from D&D Beyond on {original_date}*  ")
+    lines.append(f"*Last updated: {iso_date()}*  ")
     lines.append(f"*Source: {char.source_url}*")
 
     return "\n".join(lines)
@@ -401,6 +414,220 @@ def update_party_index(campaign_dir: Path, char: Character, char_filename: str) 
     print(f"Updated party index: {index_path}")
 
 
+def extract_dndbeyond_id_from_file(file_path: Path) -> Optional[int]:
+    """Extract D&D Beyond character ID from a character markdown file.
+
+    Parses the source URL line at the bottom of the file:
+    *Source: https://www.dndbeyond.com/characters/157884334*
+
+    Args:
+        file_path: Path to the character markdown file
+
+    Returns:
+        Character ID if found, None otherwise
+    """
+    if not file_path.exists():
+        return None
+
+    content = file_path.read_text(encoding="utf-8")
+
+    # Look for the source URL pattern
+    match = re.search(r"\*Source: https://www\.dndbeyond\.com/characters/(\d+)\*", content)
+    if match:
+        return int(match.group(1))
+
+    return None
+
+
+def extract_imported_date_from_file(file_path: Path) -> Optional[str]:
+    """Extract the original import date from a character markdown file.
+
+    Parses the import date line:
+    *Imported from D&D Beyond on 2026-01-15*
+
+    Args:
+        file_path: Path to the character markdown file
+
+    Returns:
+        Import date string (YYYY-MM-DD) if found, None otherwise
+    """
+    if not file_path.exists():
+        return None
+
+    content = file_path.read_text(encoding="utf-8")
+
+    # Look for the import date pattern
+    match = re.search(r"\*Imported from D&D Beyond on (\d{4}-\d{2}-\d{2})\*", content)
+    if match:
+        return match.group(1)
+
+    return None
+
+
+def list_imported_characters(party_dir: Path) -> list[dict]:
+    """List all imported characters with their D&D Beyond IDs.
+
+    Args:
+        party_dir: Path to campaign/party directory
+
+    Returns:
+        List of dicts with character info: name, dndbeyond_id, file_path, imported_date, updated_date
+    """
+    characters_dir = party_dir / "characters"
+    if not characters_dir.exists():
+        return []
+
+    characters = []
+
+    for char_file in sorted(characters_dir.glob("*.md")):
+        content = char_file.read_text(encoding="utf-8")
+
+        # Extract name from heading
+        name_match = re.search(r"^# (.+)$", content, re.MULTILINE)
+        name = name_match.group(1) if name_match else char_file.stem
+
+        # Extract D&D Beyond ID
+        dndbeyond_id = extract_dndbeyond_id_from_file(char_file)
+
+        # Extract dates
+        imported_match = re.search(r"\*Imported from D&D Beyond on (\d{4}-\d{2}-\d{2})\*", content)
+        imported_date = imported_match.group(1) if imported_match else None
+
+        updated_match = re.search(r"\*Last updated: (\d{4}-\d{2}-\d{2})\*", content)
+        updated_date = updated_match.group(1) if updated_match else imported_date
+
+        # Extract class info
+        class_match = re.search(r"\*\*Class\*\*: (.+?)  ", content)
+        class_info = class_match.group(1) if class_match else "Unknown"
+
+        characters.append({
+            "name": name,
+            "dndbeyond_id": dndbeyond_id,
+            "file_path": char_file,
+            "filename": char_file.name,
+            "imported_date": imported_date,
+            "updated_date": updated_date,
+            "class": class_info,
+        })
+
+    return characters
+
+
+def update_character(
+    file_path: Path,
+    linker: Optional[ReferenceLinker],
+    repo_root: Path,
+    dry_run: bool = False,
+) -> bool:
+    """Update a single character by refetching from D&D Beyond.
+
+    Args:
+        file_path: Path to the character markdown file
+        linker: Reference linker for creating links (or None for no linking)
+        repo_root: Repository root path
+        dry_run: If True, only report what would be done without making changes
+
+    Returns:
+        True if update succeeded, False otherwise
+    """
+    # Extract character ID from file
+    dndbeyond_id = extract_dndbeyond_id_from_file(file_path)
+    if not dndbeyond_id:
+        print(f"  Error: Could not find D&D Beyond ID in {file_path.name}")
+        return False
+
+    # Extract original import date to preserve it
+    imported_date = extract_imported_date_from_file(file_path)
+
+    if dry_run:
+        print(f"  Would update: {file_path.name} (ID: {dndbeyond_id})")
+        return True
+
+    # Fetch fresh character data
+    try:
+        char = fetch_character(str(dndbeyond_id))
+    except ValueError as e:
+        print(f"  Error fetching character: {e}")
+        return False
+    except Exception as e:
+        print(f"  Error: {e}")
+        return False
+
+    # Generate updated markdown
+    from_path = str(file_path.relative_to(repo_root))
+
+    if linker:
+        content = generate_character_markdown(char, linker, from_path, imported_date)
+    else:
+        class DummyLinker:
+            def link_or_text(self, name, *args, **kwargs):
+                return name
+
+            def link(self, name, *args, **kwargs):
+                return None
+
+        content = generate_character_markdown(char, DummyLinker(), from_path, imported_date)
+
+    # Write updated file
+    file_path.write_text(content, encoding="utf-8")
+    print(f"  Updated: {file_path.name}")
+
+    return True
+
+
+def update_all_characters(
+    party_dir: Path,
+    linker: Optional[ReferenceLinker],
+    repo_root: Path,
+    dry_run: bool = False,
+) -> tuple[int, int]:
+    """Update all imported characters by refetching from D&D Beyond.
+
+    Args:
+        party_dir: Path to campaign/party directory
+        linker: Reference linker for creating links
+        repo_root: Repository root path
+        dry_run: If True, only report what would be done without making changes
+
+    Returns:
+        Tuple of (success_count, failure_count)
+    """
+    characters = list_imported_characters(party_dir)
+
+    if not characters:
+        print("No imported characters found.")
+        return (0, 0)
+
+    # Filter to only characters with D&D Beyond IDs
+    updatable = [c for c in characters if c["dndbeyond_id"]]
+
+    if not updatable:
+        print("No characters with D&D Beyond IDs found.")
+        return (0, 0)
+
+    if dry_run:
+        print(f"Would update {len(updatable)} character(s):")
+    else:
+        print(f"Updating {len(updatable)} character(s)...")
+
+    success = 0
+    failure = 0
+
+    for char_info in updatable:
+        result = update_character(
+            char_info["file_path"],
+            linker,
+            repo_root,
+            dry_run,
+        )
+        if result:
+            success += 1
+        else:
+            failure += 1
+
+    return (success, failure)
+
+
 def find_repo_root() -> Path:
     """Find the repository root directory."""
     current = Path(__file__).resolve()
@@ -411,47 +638,15 @@ def find_repo_root() -> Path:
     return Path.cwd()
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Import a character from D&D Beyond.",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-    python scripts/campaign/import_character.py https://www.dndbeyond.com/characters/157884334
-    python scripts/campaign/import_character.py 157884334
-
-Note: The character must have Public privacy settings in D&D Beyond.
-        """,
-    )
-    parser.add_argument(
-        "url",
-        help="D&D Beyond character URL or ID",
-    )
-    parser.add_argument(
-        "--output",
-        "-o",
-        help="Output file path (default: campaign/party/characters/<name>.md)",
-    )
-
-    args = parser.parse_args()
-
-    # Find repo root
-    repo_root = find_repo_root()
-    campaign_dir = repo_root / "campaign"
-
-    # Check if campaign exists
-    if not campaign_dir.exists():
-        print(f"Campaign directory not found. Run 'python scripts/campaign/init_campaign.py' first.")
-        sys.exit(1)
-
+def cmd_import(args, repo_root: Path, campaign_dir: Path, books_dir: Path) -> None:
+    """Handle the import subcommand."""
     # Check if reference data exists
-    books_dir = repo_root / "books"
     if not books_dir.exists():
-        print(f"Reference data not found. Run 'make' to extract reference data first.")
+        print("Reference data not found. Run 'make' to extract reference data first.")
         sys.exit(1)
 
     # Fetch character
-    print(f"Fetching character from D&D Beyond...")
+    print("Fetching character from D&D Beyond...")
     try:
         char = fetch_character(args.url)
     except ValueError as e:
@@ -487,7 +682,6 @@ Note: The character must have Public privacy settings in D&D Beyond.
     if linker:
         content = generate_character_markdown(char, linker, from_path)
     else:
-        # Fallback without linking - create a dummy linker that doesn't link
         class DummyLinker:
             def link_or_text(self, name, *args, **kwargs):
                 return name
@@ -505,6 +699,168 @@ Note: The character must have Public privacy settings in D&D Beyond.
     update_party_index(campaign_dir, char, output_path.name)
 
     print(f"\nCharacter '{char.name}' imported successfully!")
+
+
+def cmd_list(args, repo_root: Path, campaign_dir: Path, books_dir: Path) -> None:
+    """Handle the list subcommand."""
+    party_dir = campaign_dir / "party"
+    characters = list_imported_characters(party_dir)
+
+    if not characters:
+        print("No imported characters found.")
+        return
+
+    print(f"\n{'Name':<25} {'Class':<25} {'D&D Beyond ID':<15} {'Last Updated':<12}")
+    print("-" * 80)
+
+    for char in characters:
+        dndb_id = str(char["dndbeyond_id"]) if char["dndbeyond_id"] else "N/A"
+        updated = char["updated_date"] or char["imported_date"] or "Unknown"
+        class_info = char["class"][:23] + ".." if len(char["class"]) > 25 else char["class"]
+        name = char["name"][:23] + ".." if len(char["name"]) > 25 else char["name"]
+        print(f"{name:<25} {class_info:<25} {dndb_id:<15} {updated:<12}")
+
+    print(f"\nTotal: {len(characters)} character(s)")
+
+
+def cmd_update(args, repo_root: Path, campaign_dir: Path, books_dir: Path) -> None:
+    """Handle the update subcommand."""
+    party_dir = campaign_dir / "party"
+
+    # Initialize reference linker
+    linker = None
+    if books_dir.exists():
+        try:
+            linker = ReferenceLinker(books_dir)
+        except FileNotFoundError as e:
+            print(f"Warning: {e}")
+            print("Characters will be updated without reference links.")
+
+    if args.all:
+        # Update all characters
+        success, failure = update_all_characters(
+            party_dir, linker, repo_root, args.dry_run
+        )
+
+        if args.dry_run:
+            print(f"\nDry run complete. {success} character(s) would be updated.")
+        else:
+            print(f"\nUpdate complete. {success} succeeded, {failure} failed.")
+    else:
+        # Update specific character by name
+        if not args.name:
+            print("Error: Please provide a character name or use --all to update all characters.")
+            sys.exit(1)
+
+        characters = list_imported_characters(party_dir)
+        target_name = args.name.lower()
+
+        # Find matching character
+        matches = [c for c in characters if target_name in c["name"].lower()]
+
+        if not matches:
+            print(f"No character found matching '{args.name}'")
+            print("Use 'import_character.py list' to see available characters.")
+            sys.exit(1)
+
+        if len(matches) > 1:
+            print(f"Multiple characters match '{args.name}':")
+            for m in matches:
+                print(f"  - {m['name']} ({m['filename']})")
+            print("Please be more specific.")
+            sys.exit(1)
+
+        char_info = matches[0]
+        print(f"Updating {char_info['name']}...")
+
+        success = update_character(
+            char_info["file_path"],
+            linker,
+            repo_root,
+            args.dry_run,
+        )
+
+        if args.dry_run:
+            print("\nDry run complete.")
+        elif success:
+            print(f"\nCharacter '{char_info['name']}' updated successfully!")
+        else:
+            print(f"\nFailed to update character '{char_info['name']}'")
+            sys.exit(1)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Import and manage characters from D&D Beyond.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+    python scripts/campaign/import_character.py import https://www.dndbeyond.com/characters/157884334
+    python scripts/campaign/import_character.py import 157884334
+    python scripts/campaign/import_character.py list
+    python scripts/campaign/import_character.py update "Meilin"
+    python scripts/campaign/import_character.py update --all
+    python scripts/campaign/import_character.py update --all --dry-run
+
+Note: Characters must have Public privacy settings in D&D Beyond.
+        """,
+    )
+
+    subparsers = parser.add_subparsers(dest="command", help="Command to run")
+
+    # import subcommand
+    import_parser = subparsers.add_parser("import", help="Import a character from D&D Beyond")
+    import_parser.add_argument(
+        "url",
+        help="D&D Beyond character URL or ID",
+    )
+    import_parser.add_argument(
+        "--output", "-o",
+        help="Output file path (default: campaign/party/characters/<name>.md)",
+    )
+
+    # list subcommand
+    subparsers.add_parser("list", help="List all imported characters")
+
+    # update subcommand
+    update_parser = subparsers.add_parser("update", help="Update character(s) from D&D Beyond")
+    update_parser.add_argument(
+        "name",
+        nargs="?",
+        help="Character name to update (partial match supported)",
+    )
+    update_parser.add_argument(
+        "--all", "-a",
+        action="store_true",
+        help="Update all imported characters",
+    )
+    update_parser.add_argument(
+        "--dry-run", "-n",
+        action="store_true",
+        help="Show what would be updated without making changes",
+    )
+
+    args = parser.parse_args()
+
+    # Find repo root
+    repo_root = find_repo_root()
+    campaign_dir = repo_root / "campaign"
+    books_dir = repo_root / "books"
+
+    # Check if campaign exists
+    if not campaign_dir.exists():
+        print("Campaign directory not found. Run 'python scripts/campaign/init_campaign.py' first.")
+        sys.exit(1)
+
+    # Dispatch to command handler
+    if args.command == "import":
+        cmd_import(args, repo_root, campaign_dir, books_dir)
+    elif args.command == "list":
+        cmd_list(args, repo_root, campaign_dir, books_dir)
+    elif args.command == "update":
+        cmd_update(args, repo_root, campaign_dir, books_dir)
+    else:
+        parser.print_help()
 
 
 if __name__ == "__main__":

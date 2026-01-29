@@ -164,6 +164,24 @@ graph TB
 7. Save to `campaign/party/characters/{slug}.md`
 8. Update `campaign/party/index.md`
 
+### 1b. Character Update Flow
+
+1. Parse existing character markdown to extract D&D Beyond source URL
+2. Extract character ID from source URL
+3. Fetch fresh JSON from D&D Beyond API
+4. Regenerate markdown with updated data
+5. Overwrite existing character file with new content
+6. Update "Last updated" timestamp in footer
+
+**Character Metadata in Markdown Footer**:
+
+```markdown
+---
+*Imported from D&D Beyond on 2026-01-15*  
+*Last updated: 2026-01-29*  
+*Source: https://www.dndbeyond.com/characters/157884334*
+```
+
 ### 2. Encounter Builder Algorithm
 
 1. Calculate party XP thresholds from DMG table (sum per-character thresholds)
