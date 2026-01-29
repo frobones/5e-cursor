@@ -104,6 +104,38 @@ class EquipmentExtractor:
 
         return count
 
+    def extract_base_items(self, source_path: str) -> int:
+        """Extract base items (weapons, armor) from items-base.json. Returns count extracted."""
+        with open(source_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        items = data.get('baseitem', [])
+        count = 0
+
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+
+            # Filter by source
+            item_source = item.get('source', '').upper()
+            if item_source not in self.sources:
+                continue
+
+            # Get item type
+            item_type = item.get('type', '')
+            # Handle compound types like "M|XPHB"
+            if '|' in item_type:
+                item_type = item_type.split('|')[0]
+
+            # Skip if not a mundane type
+            if item_type not in MUNDANE_TYPES:
+                continue
+
+            self._extract_item(item, item_type)
+            count += 1
+
+        return count
+
     def _get_category(self, item_type: str) -> str:
         """Get the category folder for an item type."""
         for category, types in EQUIPMENT_CATEGORIES.items():
@@ -252,7 +284,7 @@ class EquipmentExtractor:
         }
         return type_map.get(dmg_type, dmg_type or '')
 
-    def _format_property(self, prop: str) -> str:
+    def _format_property(self, prop) -> str:
         """Format weapon property code."""
         prop_map = {
             'L': 'Light',
@@ -265,7 +297,19 @@ class EquipmentExtractor:
             'LD': 'Loading',
             'R': 'Reach',
             'S': 'Special',
+            'AF': 'Ammunition (Firearm)',
+            'RLD': 'Reload',
+            'BF': 'Burst Fire',
         }
+        # Handle dict properties (e.g., versatile with damage)
+        if isinstance(prop, dict):
+            prop_code = prop.get('property', '')
+            if '|' in prop_code:
+                prop_code = prop_code.split('|')[0]
+            return prop_map.get(prop_code, prop_code)
+        # Handle string with pipe (e.g., "V|XPHB")
+        if isinstance(prop, str) and '|' in prop:
+            prop = prop.split('|')[0]
         return prop_map.get(prop, prop)
 
     def create_index(self) -> None:

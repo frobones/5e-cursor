@@ -498,10 +498,20 @@ def extract_equipment():
 
     extractor = EquipmentExtractor(str(equip_dir))
 
+    # Extract base items (weapons, armor) from items-base.json
+    base_items_file = DATA_DIR / "items-base.json"
+    if base_items_file.exists():
+        base_count = extractor.extract_base_items(str(base_items_file))
+        print(f"  Base items: {base_count}")
+
+    # Extract other mundane items from items.json
     items_file = DATA_DIR / "items.json"
     if items_file.exists():
         count = extractor.extract_file(str(items_file))
-        print(f"  Total: {count} equipment items")
+        print(f"  Other items: {count}")
+
+    total = len(extractor.index_entries)
+    print(f"  Total: {total} equipment items")
 
     # Create index
     extractor.create_index()
