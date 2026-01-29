@@ -89,6 +89,24 @@ As a DM, I want to create and organize NPCs, locations, and campaign notes so th
 
 ---
 
+### User Story 6 - AI-Assisted NPC & Location Generation (Priority: P6)
+
+As a DM, I want AI assistance when creating NPCs and locations so that I can provide partial details and have them expanded into rich, campaign-consistent entities without extensive manual writing.
+
+**Why this priority**: Builds on the foundation of User Story 5 (campaign state management) by adding intelligent expansion capabilities. Requires existing campaign context to function effectively, making it a natural extension rather than a foundational feature.
+
+**Independent Test**: Can be tested by providing minimal NPC or location details (e.g., "a blacksmith") and verifying the AI generates a complete, thematically appropriate entity that connects to existing campaign elements.
+
+**Acceptance Scenarios**:
+
+1. **Given** a partial NPC description (e.g., "tavern keeper named Mira"), **When** I request AI-assisted generation, **Then** the system expands it with physical description, personality traits, connections, and secrets that fit the campaign setting
+2. **Given** a partial location description (e.g., "an old temple in the woods"), **When** I request AI-assisted generation, **Then** the system expands it with sensory details, notable features, potential encounters, and hooks
+3. **Given** existing NPCs and locations in the campaign, **When** generating a new entity, **Then** the AI suggests logical connections to existing campaign elements
+4. **Given** the campaign's established setting and themes, **When** generating content, **Then** the AI maintains consistency with the campaign's tone and world-building
+5. **Given** generated content, **When** presented to the user, **Then** the user can approve, modify, or regenerate before the file is created
+
+---
+
 ### Edge Cases
 
 - What happens when D&D Beyond character has homebrew content not in our reference data?
@@ -99,6 +117,12 @@ As a DM, I want to create and organize NPCs, locations, and campaign notes so th
   - All class levels are imported with features from each class linked appropriately
 - What happens when a creature doesn't have a CR (e.g., CR 0 or variable CR)?
   - CR 0 creatures are treated as minimal XP; variable CR creatures use their average or specified CR
+- What happens when AI-generated content conflicts with existing campaign elements?
+  - AI checks for name conflicts before generation; user is warned and asked to choose a different name
+- What happens when the campaign has no existing context (fresh campaign)?
+  - AI uses D&D reference data and general fantasy tropes; encourages user to establish setting in campaign.md first
+- How does the AI handle requests for content that doesn't fit the campaign setting?
+  - AI flags potential inconsistencies and asks user to confirm before proceeding (e.g., sci-fi elements in fantasy setting)
 
 ## Requirements *(mandatory)*
 
@@ -114,6 +138,10 @@ As a DM, I want to create and organize NPCs, locations, and campaign notes so th
 - **FR-008**: System MUST maintain index files for party, NPCs, locations, sessions, and encounters
 - **FR-009**: System MUST store all campaign data in markdown format in the `campaign/` directory structure
 - **FR-010**: System MUST calculate party level as average of all character levels for encounter building
+- **FR-011**: AI-assisted generation MUST read campaign context (campaign.md, existing NPCs, locations) before generating content
+- **FR-012**: AI-assisted generation MUST present expanded content for user approval before creating files
+- **FR-013**: AI-assisted generation MUST check for name conflicts with existing entities before creating new ones
+- **FR-014**: AI-assisted generation MUST maintain setting consistency with established campaign themes and tone
 
 ### Key Entities
 
@@ -135,6 +163,9 @@ As a DM, I want to create and organize NPCs, locations, and campaign notes so th
 - **SC-005**: All generated markdown files are human-readable and editable in any text editor
 - **SC-006**: Campaign data remains git-trackable with clean diffs for version control
 - **SC-007**: Character sheets display all D&D Beyond data without loss of information
+- **SC-008**: AI-generated NPCs include at minimum: name, physical description, personality, and one connection to existing campaign elements
+- **SC-009**: AI-generated locations include at minimum: name, sensory description, notable features, and potential encounters
+- **SC-010**: 80% of AI-generated content requires no major revisions before user approval
 
 ## Assumptions
 
