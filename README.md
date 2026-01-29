@@ -4,6 +4,10 @@
 
 Import characters from D&D Beyond, build balanced encounters, look up rules with citations, track sessions, and generate rich NPCs and locations—all through natural language conversation with your AI assistant. Extracts and indexes 5etools content for efficient AI context.
 
+## No Coding Required
+
+[Cursor](https://cursor.com) is a free code editor with built-in AI that can read your files and run commands for you. You don't need to be a developer to use this project—once set up, you just chat with the AI in plain English to manage your campaign. The AI handles all the technical details behind the scenes.
+
 ## Quick Start
 
 ```bash
@@ -140,7 +144,7 @@ The `.cursor/rules/dnd-reference-lookup.mdc` rule guides Cursor on how to effici
 
 ## Campaign Assistant
 
-This project is designed for **AI-first D&D campaign management**. Just talk to Cursor AI in natural language—it has access to all reference data and campaign tools.
+This project is designed for **AI-first D&D campaign management**. Instead of learning commands or navigating menus, you just talk to Cursor AI in natural language. The AI has access to all your reference data, campaign files, and tools—so it can answer rules questions, build encounters, track your world, and keep everything organized for you.
 
 ### Just Ask
 
@@ -170,6 +174,14 @@ Just describe what you need, and the AI expands it into campaign-consistent cont
 **Locations** get: sensory details (sights, sounds, smells), notable features, key NPCs, connections to nearby places, potential encounters, and hidden secrets.
 
 The AI checks for name conflicts, maintains setting consistency, and connects new entities to your existing campaign elements.
+
+### Your World, Remembered
+
+Your campaign lives in organized markdown files—party roster, NPCs, locations, session summaries, and encounters. The AI can read all of it, so it understands your world's context and history.
+
+**Session tracking** lets you record what happened each session. Later you can ask *"What happened in session 3?"* or *"When did we last see Captain Vex?"* and get answers based on your actual session notes.
+
+**World awareness** means the AI maintains knowledge of your party composition, NPC relationships, location connections, and campaign history. When you ask for a new encounter or NPC, suggestions stay consistent with your established world—no more generic content that ignores your setting.
 
 After running `make` (which handles all setup), initialize your campaign:
 
