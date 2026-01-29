@@ -190,16 +190,11 @@ def update_npc_index(campaign_dir: Path, name: str, role: str, filename: str) ->
     new_lines = []
     added = False
 
-    for i, line in enumerate(lines):
+    for line in lines:
         new_lines.append(line)
         if line.strip() == target_section and not added:
-            # Look for next line
-            if i + 1 < len(lines):
-                next_line = lines[i + 1].strip()
-                if next_line.startswith("*No NPCs"):
-                    # Replace placeholder
-                    continue  # Skip adding this line, we'll add the NPC instead
             # Add NPC link after section header
+            # Any placeholder lines will be removed below
             new_lines.append("")
             new_lines.append(f"- [{name}]({filename})")
             added = True
