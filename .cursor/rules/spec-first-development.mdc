@@ -14,7 +14,7 @@ This project follows **Specification-Driven Development** using Speckit. Specifi
 ## Available Speckit Commands
 
 | Command | Purpose |
-|---------|---------|
+| ------- | ------- |
 | `/speckit.constitution` | Establish or update project principles |
 | `/speckit.specify` | Create or update feature specification from natural language |
 | `/speckit.clarify` | Resolve ambiguities by asking targeted questions and encoding answers into spec |
@@ -25,25 +25,65 @@ This project follows **Specification-Driven Development** using Speckit. Specifi
 | `/speckit.implement` | Execute implementation by processing tasks |
 | `/speckit.taskstoissues` | Convert tasks to GitHub issues |
 
+## Branch Naming Convention
+
+**All implementation work MUST be done on a branch that matches the spec name.**
+
+### Format
+
+```text
+{spec-number}-{spec-name}
+```
+
+### Examples
+
+| Spec Directory | Branch Name |
+| -------------- | ----------- |
+| `specs/1-campaign-assistant/` | `1-campaign-assistant` |
+| `specs/2-source-book-selection/` | `2-source-book-selection` |
+| `specs/15-user-authentication/` | `15-user-authentication` |
+
+### Rules
+
+- Branch name MUST exactly match the spec folder name (without `specs/` prefix)
+- Create the branch BEFORE running `/speckit.implement`
+- Never implement spec changes directly on `main` or `master`
+- If a branch already exists for the spec, checkout that branch
+
+### Creating the Branch
+
+```bash
+# For a new feature spec
+git checkout -b {spec-number}-{spec-name}
+
+# If the branch already exists
+git checkout {spec-number}-{spec-name}
+```
+
 ## Before Making Code Changes
 
-1. **Identify the governing specification**
+1. **Create or checkout the spec branch**
+   - Branch name MUST match the spec folder name (e.g., `1-campaign-assistant`)
+   - Verify you are NOT on `main` or `master` before making changes
+   - Run `git branch --show-current` to confirm
+
+2. **Identify the governing specification**
    - Check `specs/` directory for the relevant feature spec
-   - If working on a numbered branch (e.g., `5-feature-name`), find `specs/5-feature-name/`
+   - The spec folder name should match your current branch
    - Review `spec.md`, `plan.md`, `tasks.md`, and `data-model.md`
 
-2. **Resolve open items in research.md**
+3. **Resolve open items in research.md**
    - Check `research.md` for any unresolved open items
    - Open items represent blocking questions that MUST be resolved before implementation
    - If an open item affects your change, resolve it first and update the spec accordingly
    - Remove resolved items from the Open Items section (don't leave strikethrough text)
 
-3. **Verify spec coverage**
+4. **Verify spec coverage**
    - The change you're about to make MUST be documented in the specification
    - If the change isn't in the spec, STOP and update the spec first
    - Use `/speckit.specify` or `/speckit.plan` to update specifications
 
-4. **Check for spec drift**
+5. **Check for spec drift**
    - If code contradicts the specification, the SPECIFICATION is correct
    - Update the code to match the spec, not the other way around
    - If the spec is genuinely wrong, update the spec FIRST, then update code
@@ -74,26 +114,32 @@ Update specs BEFORE code changes when:
 ### For New Features
 
 ```text
-1. /speckit.specify "feature description"  → Creates spec.md
+1. /speckit.specify "feature description"  → Creates specs/{n}-{name}/spec.md
 2. /speckit.clarify                         → Resolves ambiguities (recommended)
 3. /speckit.plan                            → Creates plan.md, data-model.md, contracts/
 4. /speckit.tasks                           → Creates tasks.md
 5. /speckit.checklist                       → Creates requirements quality checklists (optional)
 6. /speckit.analyze                         → Validates cross-artifact consistency (recommended)
-7. /speckit.implement                       → Executes tasks (code changes)
+7. git checkout -b {n}-{name}               → Create branch matching spec folder name
+8. /speckit.implement                       → Executes tasks (code changes)
 ```
+
+**Note:** Steps 1-6 can be done on any branch (including `main`). Step 7 (branch creation) is REQUIRED before step 8 (implementation).
 
 ### For Changes to Existing Features
 
 ```text
-1. Read current specification in specs/[feature]/
+1. Read current specification in specs/{n}-{name}/
 2. Update spec.md if requirements changed
 3. Update plan.md if architecture affected
 4. Update data-model.md if entities changed
 5. Update contracts/ if APIs changed
 6. Update tasks.md with new/modified tasks
-7. THEN make code changes
+7. git checkout -b {n}-{name} (or checkout existing branch)
+8. THEN make code changes
 ```
+
+**Note:** Steps 1-6 (spec updates) can be done on any branch. Step 7 (branch checkout) is REQUIRED before step 8 (code changes).
 
 ### For Bug Fixes
 
@@ -113,6 +159,7 @@ Update specs BEFORE code changes when:
 
 Before approving any PR:
 
+- [ ] Branch name matches spec folder (e.g., `1-campaign-assistant` for `specs/1-campaign-assistant/`)
 - [ ] Changes are covered by specification
 - [ ] Spec was updated if behavior changed
 - [ ] API contracts match implementation
@@ -122,7 +169,9 @@ Before approving any PR:
 ## Red Flags (Stop and Use Appropriate Command)
 
 | Situation | Action |
-|-----------|--------|
+| --------- | ------ |
+| "I'm on main/master and about to implement" | STOP. Create/checkout spec branch first: `git checkout -b {n}-{name}` |
+| "My branch name doesn't match the spec folder" | STOP. Checkout the correct branch that matches `specs/{n}-{name}/` |
 | "I'm not sure what the spec wants" | Use `/speckit.clarify` to resolve ambiguities |
 | "This isn't in the spec but we need it" | Use `/speckit.specify` to update the spec first |
 | "The spec says X but we're doing Y" | Fix code OR update spec with justification |
