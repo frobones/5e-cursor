@@ -1,0 +1,141 @@
+---
+description: "Enforces spec-first development: specifications must be updated before code changes. Specs are the source of truth."
+alwaysApply: true
+---
+
+# Spec-First Development
+
+This project follows **Specification-Driven Development** using Speckit. Specifications are the source of truth and drive all implementation decisions.
+
+## Core Principle
+
+**Specifications come first. Code follows specifications. Never the reverse.**
+
+## Available Speckit Commands
+
+| Command | Purpose |
+|---------|---------|
+| `/speckit.constitution` | Establish or update project principles |
+| `/speckit.specify` | Create or update feature specification from natural language |
+| `/speckit.clarify` | Resolve ambiguities by asking targeted questions and encoding answers into spec |
+| `/speckit.plan` | Generate implementation plan (plan.md, data-model.md, contracts/) |
+| `/speckit.tasks` | Break plan into actionable tasks (tasks.md) |
+| `/speckit.checklist` | Generate requirements quality checklists ("unit tests for English") |
+| `/speckit.analyze` | Cross-artifact consistency and quality analysis (read-only) |
+| `/speckit.implement` | Execute implementation by processing tasks |
+| `/speckit.taskstoissues` | Convert tasks to GitHub issues |
+
+## Before Making Code Changes
+
+1. **Identify the governing specification**
+   - Check `specs/` directory for the relevant feature spec
+   - If working on a numbered branch (e.g., `5-feature-name`), find `specs/5-feature-name/`
+   - Review `spec.md`, `plan.md`, `tasks.md`, and `data-model.md`
+
+2. **Resolve open items in research.md**
+   - Check `research.md` for any unresolved open items
+   - Open items represent blocking questions that MUST be resolved before implementation
+   - If an open item affects your change, resolve it first and update the spec accordingly
+   - Remove resolved items from the Open Items section (don't leave strikethrough text)
+
+3. **Verify spec coverage**
+   - The change you're about to make MUST be documented in the specification
+   - If the change isn't in the spec, STOP and update the spec first
+   - Use `/speckit.specify` or `/speckit.plan` to update specifications
+
+4. **Check for spec drift**
+   - If code contradicts the specification, the SPECIFICATION is correct
+   - Update the code to match the spec, not the other way around
+   - If the spec is genuinely wrong, update the spec FIRST, then update code
+
+## Specification Hierarchy
+
+Documents in order of authority (highest first):
+
+1. `.specify/memory/constitution.md` - Project principles (immutable without formal amendment)
+2. `specs/[feature]/spec.md` - Feature requirements and user stories
+3. `specs/[feature]/plan.md` - Technical architecture decisions
+4. `specs/[feature]/data-model.md` - Entity definitions and relationships
+5. `specs/[feature]/contracts/` - API contracts (OpenAPI schemas)
+6. `specs/[feature]/tasks.md` - Implementation task breakdown
+
+## When to Update Specifications
+
+Update specs BEFORE code changes when:
+
+- Adding new functionality not covered in existing specs
+- Changing behavior described in user stories or requirements
+- Modifying API contracts or data models
+- Discovering edge cases not documented
+- Requirements change or clarify
+
+## Workflow Enforcement
+
+### For New Features
+
+```text
+1. /speckit.specify "feature description"  → Creates spec.md
+2. /speckit.clarify                         → Resolves ambiguities (recommended)
+3. /speckit.plan                            → Creates plan.md, data-model.md, contracts/
+4. /speckit.tasks                           → Creates tasks.md
+5. /speckit.checklist                       → Creates requirements quality checklists (optional)
+6. /speckit.analyze                         → Validates cross-artifact consistency (recommended)
+7. /speckit.implement                       → Executes tasks (code changes)
+```
+
+### For Changes to Existing Features
+
+```text
+1. Read current specification in specs/[feature]/
+2. Update spec.md if requirements changed
+3. Update plan.md if architecture affected
+4. Update data-model.md if entities changed
+5. Update contracts/ if APIs changed
+6. Update tasks.md with new/modified tasks
+7. THEN make code changes
+```
+
+### For Bug Fixes
+
+- If the bug is a deviation from spec: fix code to match spec
+- If the spec was unclear/wrong: update spec first, then fix code
+- Document the fix in the relevant spec's edge cases section
+
+## Keeping Specs and Code in Sync
+
+### After Implementation
+
+- Mark completed tasks as `[X]` in `tasks.md`
+- Update `quickstart.md` if integration steps changed
+- Verify implementation matches all acceptance criteria in `spec.md`
+
+### Code Review Checklist
+
+Before approving any PR:
+
+- [ ] Changes are covered by specification
+- [ ] Spec was updated if behavior changed
+- [ ] API contracts match implementation
+- [ ] Data model matches entity implementations
+- [ ] Tasks reflect completed work
+
+## Red Flags (Stop and Use Appropriate Command)
+
+| Situation | Action |
+|-----------|--------|
+| "I'm not sure what the spec wants" | Use `/speckit.clarify` to resolve ambiguities |
+| "This isn't in the spec but we need it" | Use `/speckit.specify` to update the spec first |
+| "The spec says X but we're doing Y" | Fix code OR update spec with justification |
+| "This task isn't in tasks.md" | Add it to tasks.md first |
+| "The API doesn't match the contract" | Update contract OR fix API |
+| "There's an open item in research.md" | Resolve it and update specs before implementing |
+| "Are the requirements complete?" | Use `/speckit.checklist` to validate requirements quality |
+| "Do the artifacts align?" | Use `/speckit.analyze` for cross-artifact consistency check |
+
+## References
+
+- Constitution: `.specify/memory/constitution.md`
+- Spec template: `.specify/templates/spec-template.md`
+- Plan template: `.specify/templates/plan-template.md`
+- Tasks template: `.specify/templates/tasks-template.md`
+- Checklist template: `.specify/templates/checklist-template.md`
