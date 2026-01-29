@@ -1,86 +1,101 @@
-# D&D Spelljammer Campaign Tool
+# 5e-cursor
 
-A toolkit for running D&D 5th Edition Spelljammer campaigns, featuring automated extraction of reference materials from 5etools data.
+D&D 5e reference data optimized for [Cursor AI](https://cursor.com). Extracts and indexes content from 5etools for efficient AI-assisted D&D gameplay.
 
 ## Quick Start
 
 ```bash
-# Clone with submodules
-git clone --recurse-submodules <repo-url>
-cd dnd-tool
-
-# Extract D&D reference books
-python scripts/extract_all.py
+git clone https://github.com/frobones/5e-cursor.git
+cd 5e-cursor
+make
 ```
 
-## Features
+That's it. `make` initializes the submodule and extracts all reference data.
 
-- **Automated Book Extraction**: Convert 5etools JSON data to readable markdown
-- **Spelljammer Focus**: Pre-configured for Spelljammer campaign materials
-- **Organized Reference Library**: Structured chapters and creature indices
+## What It Does
 
-## Extracted Content
+Extracts D&D 5e (2024) content from the 5etools data repository and converts it to:
 
-After running the extraction script, the following books are available in `books/`:
+- **Markdown files** - Human-readable reference documents
+- **JSON indexes** - Fast lookups for AI context
+- **Quick reference tables** - Compact stat summaries
+- **Cross-reference files** - Grouped lookups (by CR, rarity, spell level, etc.)
 
-| Book | Code | Description |
-| ---- | ---- | ----------- |
-| Player's Handbook (2024) | XPHB | Core player rules, classes, spells |
-| Dungeon Master's Guide (2024) | XDMG | DM rules, treasure, world-building |
-| Monster Manual (2024) | XMM | Creature stat blocks |
-| Astral Adventurer's Guide | AAG | Spelljammer rules, ships, Rock of Bral |
-| Boo's Astral Menagerie | BAM | 72 Spelljammer creatures |
-| Light of Xaryxis | LoX | Spelljammer adventure (levels 5-8) |
-| Spelljammer Academy | SJA | Introductory adventure (levels 1-4) |
+## Source Books
+
+| Book | Code | Type |
+| ---- | ---- | ---- |
+| Player's Handbook (2024) | XPHB | Core Rules |
+| Dungeon Master's Guide (2024) | XDMG | Core Rules |
+| Monster Manual (2024) | XMM | Core Rules |
+| Astral Adventurer's Guide | AAG | Spelljammer |
+| Boo's Astral Menagerie | BAM | Spelljammer |
+| Light of Xaryxis | LoX | Adventure |
+| Spelljammer Academy | SJA | Adventure |
+| Eberron: Forge of the Artificer | EFA | Supplement (Artificer only) |
+
+## Extracted Reference Data
+
+| Category | Count | Path |
+| -------- | ----- | ---- |
+| Spells | 393 | `books/reference/spells/` |
+| Creatures | 592 | `books/reference/creatures/` |
+| Magic Items | 1,250 | `books/reference/items/` |
+| Equipment | 264 | `books/reference/equipment/` |
+| Classes | 13 + 53 subclasses | `books/reference/classes/` |
+| Species | 21 | `books/reference/species/` |
+| Feats | 77 | `books/reference/feats/` |
+| Backgrounds | 18 | `books/reference/backgrounds/` |
+| Rules/Conditions | 161 | `books/reference/rules/` |
+
+See `books/README.md` for the complete list after extraction.
+
+## AI-Optimized Indexes
+
+| File | Purpose |
+| ---- | ------- |
+| `books/reference-index.json` | Master index (2,499 entries) |
+| `books/keyword-index.json` | Semantic lookups (damage types, creature types, schools) |
+| `books/cross-references/` | Grouped tables (creatures by CR, spells by level, etc.) |
+| `books/reference/*/quick-reference.md` | Compact stat tables |
 
 ## Project Structure
 
 ```
-dnd-tool/
-├── 5etools-src/          # Git submodule - 5etools data source
-├── books/                # Extracted markdown (gitignored)
-│   ├── core/             # 2024 core rulebooks
-│   └── spelljammer/      # Setting books and adventures
+5e-cursor/
+├── 5etools-src/              # Git submodule (5etools data)
+├── books/                    # Extracted content (gitignored)
+│   ├── core/                 # Core rulebooks
+│   ├── spelljammer/          # Setting & adventures
+│   ├── eberron/              # EFA (Artificer)
+│   ├── reference/            # Individual entries
+│   ├── cross-references/     # Grouped tables
+│   ├── reference-index.json  # Master index
+│   └── keyword-index.json    # Keyword lookups
 ├── scripts/
-│   ├── extract_all.py    # Extract all configured books
-│   └── extract_book.py   # Core extraction library
+│   ├── extract_all.py        # Main extraction script
+│   ├── extract_book.py       # Book extraction library
+│   └── extractors/           # Category extractors
+├── .cursor/rules/            # Cursor AI rules
+├── .cursorignore             # Excludes 5etools-src from Cursor
+├── Makefile                  # Build commands
 └── README.md
 ```
 
-## Scripts
+## Makefile Commands
 
-### `scripts/extract_all.py`
+| Command | Description |
+| ------- | ----------- |
+| `make` | Initialize submodule and extract (default) |
+| `make extract` | Run extraction only |
+| `make submodule` | Initialize/update submodule only |
+| `make clean` | Remove extracted books/ |
+| `make help` | Show available commands |
 
-Extracts all Spelljammer campaign books to the `books/` directory.
+## Cursor Integration
 
-```bash
-python scripts/extract_all.py
-```
-
-### `scripts/extract_book.py`
-
-Extract individual books or bestiaries:
-
-```bash
-# Extract a book
-python scripts/extract_book.py 5etools-src/data/book/book-xphb.json output/xphb/
-
-# Extract a bestiary
-python scripts/extract_book.py 5etools-src/data/bestiary/bestiary-mm.json output/mm/
-```
-
-## Adding More Books
-
-To add additional books, edit `scripts/extract_all.py` and add entries to the `EXTRACTIONS` list:
-
-```python
-{
-    "name": "Book Name",
-    "source": DATA_DIR / "book" / "book-code.json",
-    "output": BOOKS_DIR / "category" / "code",
-},
-```
+The `.cursor/rules/dnd-reference-lookup.mdc` rule guides Cursor on how to efficiently look up D&D reference data. The 5etools-src submodule is excluded via `.cursorignore` to keep AI context focused on the extracted markdown.
 
 ## License
 
-The extraction scripts are provided as-is. D&D content extracted from 5etools is property of Wizards of the Coast and is not redistributed in this repository.
+Extraction scripts are provided as-is. D&D content is property of Wizards of the Coast and is not redistributed in this repository. Run `make` to generate content locally from the 5etools submodule.
