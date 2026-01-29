@@ -20,7 +20,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from extractors import (
     SpellExtractor, CreatureExtractor, ItemExtractor,
     FeatExtractor, BackgroundExtractor, SpeciesExtractor,
-    ClassExtractor, EquipmentExtractor
+    ClassExtractor, EquipmentExtractor, RulesExtractor
 )
 
 # Repository root (parent of scripts/)
@@ -258,6 +258,15 @@ Individual entries for cross-referencing. Each entry has its own markdown file.
 | Magic Items | Wondrous items, weapons, armor | [reference/items/](reference/items/) |
 | Equipment | Mundane gear, weapons, armor | [reference/equipment/](reference/equipment/) |
 
+### Rules Glossary
+
+| Reference | Description | Location |
+| --------- | ----------- | -------- |
+| Conditions | Blinded, Charmed, Prone, etc. | [reference/rules/conditions/](reference/rules/conditions/) |
+| Actions | Attack, Dash, Dodge, etc. | [reference/rules/actions/](reference/rules/actions/) |
+| Senses | Darkvision, Blindsight, etc. | [reference/rules/senses/](reference/rules/senses/) |
+| Glossary | All rules definitions | [reference/rules/glossary/](reference/rules/glossary/) |
+
 ---
 
 ## Source
@@ -477,6 +486,42 @@ def extract_equipment():
     print(f"  -> {equip_dir.relative_to(REPO_ROOT)}/")
 
 
+def extract_rules():
+    """Extract rules glossary entries to individual files."""
+    print("Extracting rules glossary...")
+    rules_dir = REFERENCE_DIR / "rules"
+
+    extractor = RulesExtractor(str(rules_dir))
+
+    # Extract conditions
+    conditions_file = DATA_DIR / "conditionsdiseases.json"
+    if conditions_file.exists():
+        count = extractor.extract_conditions(str(conditions_file))
+        print(f"  Conditions: {count}")
+
+    # Extract actions
+    actions_file = DATA_DIR / "actions.json"
+    if actions_file.exists():
+        count = extractor.extract_actions(str(actions_file))
+        print(f"  Actions: {count}")
+
+    # Extract senses
+    senses_file = DATA_DIR / "senses.json"
+    if senses_file.exists():
+        count = extractor.extract_senses(str(senses_file))
+        print(f"  Senses: {count}")
+
+    # Extract variant rules
+    rules_file = DATA_DIR / "variantrules.json"
+    if rules_file.exists():
+        count = extractor.extract_variant_rules(str(rules_file))
+        print(f"  Glossary: {count}")
+
+    # Create index
+    extractor.create_index()
+    print(f"  -> {rules_dir.relative_to(REPO_ROOT)}/")
+
+
 def main():
     print("=" * 60)
     print("D&D Book Extraction for Spelljammer Campaign")
@@ -531,6 +576,9 @@ def main():
     print()
 
     extract_equipment()
+    print()
+
+    extract_rules()
     print()
 
     # Create README

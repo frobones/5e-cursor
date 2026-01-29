@@ -8,6 +8,7 @@ from .background_extractor import BackgroundExtractor
 from .species_extractor import SpeciesExtractor
 from .class_extractor import ClassExtractor
 from .equipment_extractor import EquipmentExtractor
+from .rules_extractor import RulesExtractor
 
 __all__ = [
     'SpellExtractor',
@@ -18,4 +19,5 @@ __all__ = [
     'SpeciesExtractor',
     'ClassExtractor',
     'EquipmentExtractor',
+    'RulesExtractor',
 ]
