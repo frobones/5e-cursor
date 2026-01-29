@@ -48,7 +48,7 @@ class CreatureExtractor:
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(content)
 
-        # Add to index
+        # Add to index with enriched data
         cr = monster.get('cr', '0')
         if isinstance(cr, dict):
             cr = cr.get('cr', '0')
@@ -59,12 +59,70 @@ class CreatureExtractor:
 
         source = monster.get('source', '')
 
+        # Size
+        size_map = {'T': 'Tiny', 'S': 'Small', 'M': 'Medium', 'L': 'Large', 'H': 'Huge', 'G': 'Gargantuan'}
+        sizes = monster.get('size', ['M'])
+        size = size_map.get(sizes[0], sizes[0]) if sizes else 'Medium'
+
+        # AC
+        ac_data = monster.get('ac', [])
+        if ac_data:
+            if isinstance(ac_data[0], dict):
+                ac = ac_data[0].get('ac', 10)
+            else:
+                ac = ac_data[0]
+        else:
+            ac = 10
+
+        # HP
+        hp_data = monster.get('hp', {})
+        if isinstance(hp_data, dict):
+            hp = hp_data.get('average', hp_data.get('special', 0))
+        else:
+            hp = hp_data
+
+        # Speed types
+        speed_data = monster.get('speed', {})
+        speed_types = []
+        if isinstance(speed_data, dict):
+            for speed_type in ['walk', 'fly', 'swim', 'climb', 'burrow']:
+                if speed_type in speed_data:
+                    speed_types.append(speed_type)
+
+        # Damage immunities
+        immunities = []
+        immune_data = monster.get('immune', [])
+        for imm in immune_data:
+            if isinstance(imm, str):
+                immunities.append(imm)
+            elif isinstance(imm, dict):
+                for i in imm.get('immune', []):
+                    if isinstance(i, str):
+                        immunities.append(i)
+
+        # Damage resistances
+        resist_data = monster.get('resist', [])
+        resistances = []
+        for res in resist_data:
+            if isinstance(res, str):
+                resistances.append(res)
+            elif isinstance(res, dict):
+                for r in res.get('resist', []):
+                    if isinstance(r, str):
+                        resistances.append(r)
+
         self.index_entries.append({
             'name': name,
             'cr': cr,
             'type': monster_type,
             'source': source,
             'path': filename,
+            'size': size,
+            'ac': ac,
+            'hp': hp,
+            'speed_types': speed_types,
+            'immunities': immunities,
+            'resistances': resistances,
         })
 
     def _creature_to_markdown(self, monster: dict) -> str:

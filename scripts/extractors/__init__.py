@@ -24,6 +24,7 @@ from .misc_extractor import (
     EncounterExtractor,
     LootExtractor,
 )
+from .index_collector import IndexCollector
 
 __all__ = [
     'SpellExtractor',
@@ -48,4 +49,5 @@ __all__ = [
     'ItemMasteryExtractor',
     'EncounterExtractor',
     'LootExtractor',
+    'IndexCollector',
 ]

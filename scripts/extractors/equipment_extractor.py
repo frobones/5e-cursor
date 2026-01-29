@@ -161,11 +161,28 @@ class EquipmentExtractor:
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(content)
 
-        # Add to index
+        # Add to index with enriched data
         source = item.get('source', '')
         type_name = MUNDANE_TYPES.get(item_type, item_type)
         weight = item.get('weight', '')
         value = item.get('value', 0)
+
+        # Format cost
+        cost = self._format_value(value) if value else '-'
+
+        # Get damage for weapons
+        damage = ''
+        if item_type in {'M', 'R'}:
+            dmg1 = item.get('dmg1', '')
+            dmg_type = item.get('dmgType', '')
+            dmg_map = {'B': 'bludgeoning', 'P': 'piercing', 'S': 'slashing'}
+            if dmg1:
+                damage = f"{dmg1} {dmg_map.get(dmg_type, dmg_type)}"
+
+        # Get AC for armor
+        ac = ''
+        if item_type in {'LA', 'MA', 'HA', 'S'}:
+            ac = item.get('ac', '')
 
         self.index_entries.append({
             'name': name,
@@ -174,6 +191,9 @@ class EquipmentExtractor:
             'source': source,
             'weight': weight,
             'value': value,
+            'cost': cost,
+            'damage': damage,
+            'ac': ac,
             'path': f"{category}/{filename}",
         })
 

@@ -65,23 +65,43 @@ class ItemExtractor:
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(content)
 
-        # Add to index
+        # Add to index with enriched data
         rarity = item.get('rarity', 'unknown')
         if isinstance(rarity, dict):
             rarity = rarity.get('rarity', 'unknown')
-        rarity = rarity.lower() if rarity else 'unknown'
+        rarity = rarity.title() if rarity else 'Unknown'
 
         item_type = self._get_item_type(item)
         source = item.get('source', '')
         attunement = item.get('reqAttune', False)
 
+        # Damage types (for weapons)
+        damage_types = []
+        dmg_type = item.get('dmgType', '')
+        if dmg_type:
+            dmg_map = {'B': 'bludgeoning', 'P': 'piercing', 'S': 'slashing',
+                       'A': 'acid', 'C': 'cold', 'F': 'fire', 'L': 'lightning',
+                       'N': 'necrotic', 'O': 'force', 'R': 'radiant', 'T': 'thunder',
+                       'Y': 'psychic', 'I': 'poison'}
+            damage_types.append(dmg_map.get(dmg_type, dmg_type))
+
+        # Properties
+        properties = []
+        for prop in item.get('property', []):
+            if isinstance(prop, str):
+                properties.append(prop)
+            elif isinstance(prop, dict):
+                properties.append(prop.get('property', ''))
+
         self.index_entries.append({
             'name': name,
             'rarity': rarity,
-            'type': item_type,
+            'item_type': item_type,
             'source': source,
             'attunement': bool(attunement),
             'path': filename,
+            'damage_types': damage_types,
+            'properties': properties,
         })
 
     def _item_to_markdown(self, item: dict) -> str:

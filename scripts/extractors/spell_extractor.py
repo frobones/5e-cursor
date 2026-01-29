@@ -82,14 +82,38 @@ class SpellExtractor:
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(content)
 
-        # Add to index
+        # Add to index with enriched data
         school_name = self.SCHOOL_MAP.get(school, school)
+
+        # Get casting time
+        time_data = spell.get('time', [])
+        casting_time = self._format_time(time_data[0]) if time_data else ''
+
+        # Get range
+        range_data = spell.get('range', {})
+        spell_range = self._format_range(range_data)
+
+        # Get duration
+        duration_data = spell.get('duration', [])
+        duration = self._format_duration(duration_data[0]) if duration_data else ''
+
+        # Get damage types
+        damage_types = spell.get('damageInflict', [])
+
+        # Get conditions inflicted
+        conditions = spell.get('conditionInflict', [])
+
         self.index_entries.append({
             'name': name,
             'level': level,
             'school': school_name,
             'source': source,
             'path': f"{level_dir}/{filename}",
+            'casting_time': casting_time,
+            'range': spell_range,
+            'duration': duration,
+            'damage_types': damage_types,
+            'conditions': conditions,
         })
 
     def _spell_to_markdown(self, spell: dict) -> str:

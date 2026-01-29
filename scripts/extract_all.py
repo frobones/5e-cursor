@@ -24,8 +24,12 @@ from extractors import (
     VehicleExtractor, OptionalFeatureExtractor, TrapExtractor,
     LanguageExtractor, BastionExtractor, DeityExtractor,
     RewardExtractor, ObjectExtractor, DeckExtractor,
-    SkillExtractor, ItemMasteryExtractor, EncounterExtractor, LootExtractor
+    SkillExtractor, ItemMasteryExtractor, EncounterExtractor, LootExtractor,
+    IndexCollector
 )
+
+# Global storage for extractors (for index generation)
+EXTRACTORS = {}
 
 # Repository root (parent of scripts/)
 REPO_ROOT = Path(__file__).parent.parent
@@ -361,6 +365,9 @@ def extract_spells():
 
     # Create index
     extractor.create_index()
+
+    # Store for index generation
+    EXTRACTORS['spells'] = extractor
     print(f"  -> {spells_dir.relative_to(REPO_ROOT)}/")
 
 
@@ -399,6 +406,9 @@ def extract_creatures():
     extractor.create_index()
     print(f"  -> {creatures_dir.relative_to(REPO_ROOT)}/")
 
+    # Store for index generation
+    EXTRACTORS['creatures'] = extractor
+
 
 def extract_items():
     """Extract magic items to individual files."""
@@ -417,6 +427,9 @@ def extract_items():
     # Create index
     extractor.create_index()
     print(f"  -> {items_dir.relative_to(REPO_ROOT)}/")
+
+    # Store for index generation
+    EXTRACTORS['items'] = extractor
 
 
 def extract_feats():
@@ -533,6 +546,9 @@ def extract_equipment():
     # Create index
     extractor.create_index()
     print(f"  -> {equip_dir.relative_to(REPO_ROOT)}/")
+
+    # Store for index generation
+    EXTRACTORS['equipment'] = extractor
 
 
 def extract_rules():
@@ -785,6 +801,40 @@ def extract_loot():
     print(f"  -> {loot_dir.relative_to(REPO_ROOT)}/")
 
 
+def generate_indexes():
+    """Generate AI-optimized indexes from collected extractor data."""
+    print("Generating AI-optimized indexes...")
+
+    collector = IndexCollector()
+
+    # Collect entries from extractors
+    if 'spells' in EXTRACTORS:
+        collector.add_entries('spells', EXTRACTORS['spells'].index_entries)
+    if 'creatures' in EXTRACTORS:
+        collector.add_entries('creatures', EXTRACTORS['creatures'].index_entries)
+    if 'items' in EXTRACTORS:
+        collector.add_entries('items', EXTRACTORS['items'].index_entries)
+    if 'equipment' in EXTRACTORS:
+        collector.add_entries('equipment', EXTRACTORS['equipment'].index_entries)
+
+    # Generate master JSON index
+    collector.generate_master_json(BOOKS_DIR / "reference-index.json")
+
+    # Generate quick reference files
+    collector.generate_quick_references(REFERENCE_DIR)
+
+    # Generate cross-reference tables
+    cross_ref_dir = BOOKS_DIR / "cross-references"
+    collector.generate_cross_references(cross_ref_dir)
+
+    # Generate keyword index
+    collector.generate_keyword_index(BOOKS_DIR / "keyword-index.json")
+
+    print(f"  -> {BOOKS_DIR.relative_to(REPO_ROOT)}/reference-index.json")
+    print(f"  -> {BOOKS_DIR.relative_to(REPO_ROOT)}/keyword-index.json")
+    print(f"  -> {cross_ref_dir.relative_to(REPO_ROOT)}/")
+
+
 def main():
     print("=" * 60)
     print("D&D Book Extraction for Spelljammer Campaign")
@@ -886,6 +936,11 @@ def main():
     # Create README
     print("Creating master index...")
     create_readme()
+
+    print()
+
+    # Generate AI-optimized indexes
+    generate_indexes()
 
     print()
     print("=" * 60)
