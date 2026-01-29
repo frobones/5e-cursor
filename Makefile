@@ -1,15 +1,32 @@
 # D&D Reference Extraction Makefile
 
-.PHONY: all submodule extract clean help
+.PHONY: all submodule extract clean help install deps venv
 .PHONY: campaign-init import-character encounter rules session add-npc add-location test
 
 # Detect venv python
 PYTHON := $(shell [ -f .venv/bin/python ] && echo ".venv/bin/python" || echo "python3")
 
-# Default target: ensure submodule is ready, then extract
-all: submodule extract
+# Default target: install deps, ensure submodule is ready, then extract
+all: install submodule extract
 	@echo ""
 	@echo "Ready to go! D&D reference data is available in books."
+
+# Create virtual environment and install requirements
+install: venv
+	@echo "Installing Python requirements..."
+	@.venv/bin/pip install -q -r requirements.txt
+	@echo "Requirements installed."
+
+# Alias for install
+deps: install
+
+# Create virtual environment if it doesn't exist
+venv:
+	@if [ ! -d .venv ]; then \
+		echo "Creating virtual environment..."; \
+		python3 -m venv .venv; \
+		echo "Virtual environment created."; \
+	fi
 
 # Initialize/update the 5etools-src submodule
 submodule:
@@ -20,7 +37,7 @@ submodule:
 # Run the extraction script
 extract:
 	@echo "Extracting D&D reference data..."
-	python3 scripts/extract_all.py
+	@$(PYTHON) scripts/extract_all.py
 	@echo "Extraction complete. See books/ directory."
 
 # Clean extracted data (can be regenerated)
@@ -111,10 +128,11 @@ test:
 help:
 	@echo "D&D Reference Extraction & Campaign Assistant"
 	@echo ""
-	@echo "Reference Commands:"
-	@echo "  make              - Initialize submodule and extract (default)"
-	@echo "  make extract      - Run extraction script only"
+	@echo "Setup Commands:"
+	@echo "  make              - Full setup: install deps, init submodule, extract (default)"
+	@echo "  make install      - Create venv and install Python requirements"
 	@echo "  make submodule    - Initialize/update 5etools-src submodule only"
+	@echo "  make extract      - Run extraction script only"
 	@echo "  make clean        - Remove extracted books/ directory"
 	@echo ""
 	@echo "Campaign Commands:"
