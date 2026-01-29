@@ -9,6 +9,17 @@ from .species_extractor import SpeciesExtractor
 from .class_extractor import ClassExtractor
 from .equipment_extractor import EquipmentExtractor
 from .rules_extractor import RulesExtractor
+from .vehicle_extractor import VehicleExtractor
+from .optionalfeature_extractor import OptionalFeatureExtractor
+from .trap_extractor import TrapExtractor
+from .misc_extractor import (
+    LanguageExtractor,
+    BastionExtractor,
+    DeityExtractor,
+    RewardExtractor,
+    ObjectExtractor,
+    DeckExtractor,
+)
 
 __all__ = [
     'SpellExtractor',
@@ -20,4 +31,13 @@ __all__ = [
     'ClassExtractor',
     'EquipmentExtractor',
     'RulesExtractor',
+    'VehicleExtractor',
+    'OptionalFeatureExtractor',
+    'TrapExtractor',
+    'LanguageExtractor',
+    'BastionExtractor',
+    'DeityExtractor',
+    'RewardExtractor',
+    'ObjectExtractor',
+    'DeckExtractor',
 ]

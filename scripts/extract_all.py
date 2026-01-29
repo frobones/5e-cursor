@@ -20,7 +20,10 @@ sys.path.insert(0, str(Path(__file__).parent))
 from extractors import (
     SpellExtractor, CreatureExtractor, ItemExtractor,
     FeatExtractor, BackgroundExtractor, SpeciesExtractor,
-    ClassExtractor, EquipmentExtractor, RulesExtractor
+    ClassExtractor, EquipmentExtractor, RulesExtractor,
+    VehicleExtractor, OptionalFeatureExtractor, TrapExtractor,
+    LanguageExtractor, BastionExtractor, DeityExtractor,
+    RewardExtractor, ObjectExtractor, DeckExtractor
 )
 
 # Repository root (parent of scripts/)
@@ -266,6 +269,25 @@ Individual entries for cross-referencing. Each entry has its own markdown file.
 | Actions | Attack, Dash, Dodge, etc. | [reference/rules/actions/](reference/rules/actions/) |
 | Senses | Darkvision, Blindsight, etc. | [reference/rules/senses/](reference/rules/senses/) |
 | Glossary | All rules definitions | [reference/rules/glossary/](reference/rules/glossary/) |
+
+### Spelljammer
+
+| Reference | Description | Location |
+| --------- | ----------- | -------- |
+| Vehicles | Spelljammer ships | [reference/vehicles/](reference/vehicles/) |
+
+### Additional Reference
+
+| Reference | Description | Location |
+| --------- | ----------- | -------- |
+| Optional Features | Invocations, Maneuvers, Metamagic | [reference/optional-features/](reference/optional-features/) |
+| Traps and Hazards | Traps and environmental hazards | [reference/traps-hazards/](reference/traps-hazards/) |
+| Languages | Standard and exotic languages | [reference/languages/](reference/languages/) |
+| Bastions | Bastion facilities (2024 DMG) | [reference/bastions/](reference/bastions/) |
+| Deities | Gods and pantheons | [reference/deities/](reference/deities/) |
+| Rewards | Boons, blessings, charms | [reference/rewards/](reference/rewards/) |
+| Objects | Interactive objects | [reference/objects/](reference/objects/) |
+| Decks | Card decks (Deck of Many Things, etc.) | [reference/decks/](reference/decks/) |
 
 ---
 
@@ -522,6 +544,151 @@ def extract_rules():
     print(f"  -> {rules_dir.relative_to(REPO_ROOT)}/")
 
 
+def extract_vehicles():
+    """Extract vehicles/ships to individual files."""
+    print("Extracting vehicles...")
+    vehicles_dir = REFERENCE_DIR / "vehicles"
+
+    extractor = VehicleExtractor(str(vehicles_dir))
+
+    vehicles_file = DATA_DIR / "vehicles.json"
+    if vehicles_file.exists():
+        count = extractor.extract_file(str(vehicles_file))
+        print(f"  Total: {count} vehicles")
+
+    extractor.create_index()
+    print(f"  -> {vehicles_dir.relative_to(REPO_ROOT)}/")
+
+
+def extract_optional_features():
+    """Extract optional features (invocations, maneuvers, metamagic)."""
+    print("Extracting optional features...")
+    features_dir = REFERENCE_DIR / "optional-features"
+
+    extractor = OptionalFeatureExtractor(str(features_dir))
+
+    features_file = DATA_DIR / "optionalfeatures.json"
+    if features_file.exists():
+        count = extractor.extract_file(str(features_file))
+        print(f"  Total: {count} features")
+
+    extractor.create_index()
+    print(f"  -> {features_dir.relative_to(REPO_ROOT)}/")
+
+
+def extract_traps():
+    """Extract traps and hazards to individual files."""
+    print("Extracting traps and hazards...")
+    traps_dir = REFERENCE_DIR / "traps-hazards"
+
+    extractor = TrapExtractor(str(traps_dir))
+
+    traps_file = DATA_DIR / "trapshazards.json"
+    if traps_file.exists():
+        counts = extractor.extract_file(str(traps_file))
+        print(f"  Traps: {counts['traps']}")
+        print(f"  Hazards: {counts['hazards']}")
+
+    extractor.create_index()
+    print(f"  -> {traps_dir.relative_to(REPO_ROOT)}/")
+
+
+def extract_languages():
+    """Extract languages to individual files."""
+    print("Extracting languages...")
+    languages_dir = REFERENCE_DIR / "languages"
+
+    extractor = LanguageExtractor(str(languages_dir))
+
+    languages_file = DATA_DIR / "languages.json"
+    if languages_file.exists():
+        count = extractor.extract_file(str(languages_file))
+        print(f"  Total: {count} languages")
+
+    extractor.create_index()
+    print(f"  -> {languages_dir.relative_to(REPO_ROOT)}/")
+
+
+def extract_bastions():
+    """Extract bastion facilities to individual files."""
+    print("Extracting bastion facilities...")
+    bastions_dir = REFERENCE_DIR / "bastions"
+
+    extractor = BastionExtractor(str(bastions_dir))
+
+    bastions_file = DATA_DIR / "bastions.json"
+    if bastions_file.exists():
+        count = extractor.extract_file(str(bastions_file))
+        print(f"  Total: {count} facilities")
+
+    extractor.create_index()
+    print(f"  -> {bastions_dir.relative_to(REPO_ROOT)}/")
+
+
+def extract_deities():
+    """Extract deities to individual files."""
+    print("Extracting deities...")
+    deities_dir = REFERENCE_DIR / "deities"
+
+    extractor = DeityExtractor(str(deities_dir))
+
+    deities_file = DATA_DIR / "deities.json"
+    if deities_file.exists():
+        count = extractor.extract_file(str(deities_file))
+        print(f"  Total: {count} deities")
+
+    extractor.create_index()
+    print(f"  -> {deities_dir.relative_to(REPO_ROOT)}/")
+
+
+def extract_rewards():
+    """Extract rewards (boons, blessings) to individual files."""
+    print("Extracting rewards...")
+    rewards_dir = REFERENCE_DIR / "rewards"
+
+    extractor = RewardExtractor(str(rewards_dir))
+
+    rewards_file = DATA_DIR / "rewards.json"
+    if rewards_file.exists():
+        count = extractor.extract_file(str(rewards_file))
+        print(f"  Total: {count} rewards")
+
+    extractor.create_index()
+    print(f"  -> {rewards_dir.relative_to(REPO_ROOT)}/")
+
+
+def extract_objects():
+    """Extract objects to individual files."""
+    print("Extracting objects...")
+    objects_dir = REFERENCE_DIR / "objects"
+
+    extractor = ObjectExtractor(str(objects_dir))
+
+    objects_file = DATA_DIR / "objects.json"
+    if objects_file.exists():
+        count = extractor.extract_file(str(objects_file))
+        print(f"  Total: {count} objects")
+
+    extractor.create_index()
+    print(f"  -> {objects_dir.relative_to(REPO_ROOT)}/")
+
+
+def extract_decks():
+    """Extract decks and cards to individual files."""
+    print("Extracting decks...")
+    decks_dir = REFERENCE_DIR / "decks"
+
+    extractor = DeckExtractor(str(decks_dir))
+
+    decks_file = DATA_DIR / "decks.json"
+    if decks_file.exists():
+        count = extractor.extract_file(str(decks_file))
+        print(f"  Total: {count} decks")
+
+    extractor.create_index()
+    print(f"  -> {decks_dir.relative_to(REPO_ROOT)}/")
+
+
 def main():
     print("=" * 60)
     print("D&D Book Extraction for Spelljammer Campaign")
@@ -579,6 +746,33 @@ def main():
     print()
 
     extract_rules()
+    print()
+
+    extract_vehicles()
+    print()
+
+    extract_optional_features()
+    print()
+
+    extract_traps()
+    print()
+
+    extract_languages()
+    print()
+
+    extract_bastions()
+    print()
+
+    extract_deities()
+    print()
+
+    extract_rewards()
+    print()
+
+    extract_objects()
+    print()
+
+    extract_decks()
     print()
 
     # Create README
