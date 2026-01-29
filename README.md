@@ -1,6 +1,8 @@
 # 5e-cursor
 
-D&D 5e reference data optimized for [Cursor AI](https://cursor.com). Extracts and indexes content from 5etools for efficient AI-assisted D&D gameplay.
+**AI-first D&D 5e campaign management for [Cursor](https://cursor.com).**
+
+Import characters from D&D Beyond, build balanced encounters, look up rules with citations, track sessions, and generate rich NPCs and locations—all through natural language conversation with your AI assistant. Extracts and indexes 5etools content for efficient AI context.
 
 ## Quick Start
 
@@ -37,6 +39,7 @@ Extracts D&D 5e (2024) content from the 5etools data repository and converts it 
 ### Customizing Sources
 
 By default, extraction includes **2024 Core + Spelljammer + Artificer**:
+
 - XPHB, XDMG, XMM (2024 rules)
 - AAG, BAM, LoX, SJA (Spelljammer)
 - EFA (Artificer class only)
@@ -143,8 +146,20 @@ Instead of running commands, simply tell the AI what you need:
 | *"Add an NPC named Vex, she's a tavern owner ally"* | Creates NPC file, updates NPC index |
 | *"What spells does Meilin have prepared?"* | Reads character sheet, lists spells |
 | *"What happened in session 3?"* | Reads session summary |
+| *"Create a blacksmith NPC for the market district"* | Generates rich NPC with description, personality, secrets |
+| *"Add a hidden temple in the forest"* | Creates location with sensory details, encounters, hooks |
 
 The AI uses the extracted reference data and campaign tools automatically—you don't need to know the underlying commands.
+
+### AI-Assisted NPC & Location Generation
+
+Just describe what you need, and the AI expands it into campaign-consistent content:
+
+**NPCs** get: physical description, personality traits, voice/mannerisms, connections to existing NPCs, secrets, and combat stats.
+
+**Locations** get: sensory details (sights, sounds, smells), notable features, key NPCs, connections to nearby places, potential encounters, and hidden secrets.
+
+The AI checks for name conflicts, maintains setting consistency, and connects new entities to your existing campaign elements.
 
 After running `make` (which handles all setup), initialize your campaign:
 
@@ -170,6 +185,7 @@ Or just ask the AI: *"Initialize a campaign called Spelljammer Adventures"*
 | **Rules Arbitration** | Answer rules questions with inline quotes and source citations |
 | **Session Tracking** | Create and review session summaries |
 | **Campaign State** | Manage NPCs, locations, and campaign notes |
+| **AI-Assisted Generation** | Create rich NPCs and locations from partial descriptions |
 | **Reference Lookup** | Find spells, creatures, items, feats, conditions instantly |
 
 ### Campaign Data Structure
@@ -213,6 +229,10 @@ python scripts/campaign/session_manager.py new "Session Title"
 
 # Campaign management
 python scripts/campaign/campaign_manager.py add-npc "Name" --role ally
+
+# AI support commands
+python scripts/campaign/campaign_manager.py context      # Campaign summary for AI
+python scripts/campaign/campaign_manager.py check-name "Name"  # Validate name availability
 ```
 
 ## License
