@@ -1,0 +1,3 @@
+# Ignore 5etools source data - use extracted markdown instead
+# The books/ directory contains curated, AI-optimized extractions
+5etools-src/

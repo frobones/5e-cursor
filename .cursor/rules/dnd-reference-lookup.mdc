@@ -7,6 +7,9 @@ alwaysApply: false
 
 This project contains extracted D&D 5e (2024) reference data. Use these indexes for efficient lookups.
 
+> **Note:** The `5etools-src/` submodule is ignored via `.cursorignore`. Always use the extracted
+> markdown in `books/` instead of raw JSON. Run `python scripts/extract_all.py` to regenerate.
+
 ## Lookup Strategy (Fastest to Slowest)
 
 1. **Grep JSON indexes** - For name-to-path lookups
@@ -18,7 +21,7 @@ This project contains extracted D&D 5e (2024) reference data. Use these indexes 
 
 | File | Use Case |
 |------|----------|
-| `books/reference-index.json` | Name/type/path lookup for all 2,493 entries |
+| `books/reference-index.json` | Name/type/path lookup for all 2,499 entries |
 | `books/keyword-index.json` | Semantic lookups (damage types, creature types, schools) |
 
 ## Quick Reference Files
@@ -27,7 +30,7 @@ This project contains extracted D&D 5e (2024) reference data. Use these indexes 
 |------|----------|
 | `books/reference/spells/quick-reference.md` | 393 spells: level, school, time, range |
 | `books/reference/creatures/quick-reference.md` | 592 creatures: CR, type, size, HP, AC |
-| `books/reference/items/quick-reference.md` | 1,244 items: rarity, type, attunement |
+| `books/reference/items/quick-reference.md` | 1,250 items: rarity, type, attunement |
 | `books/reference/equipment/quick-reference.md` | 264 equipment: type, cost, damage/AC |
 
 ## Cross-Reference Files (`books/cross-references/`)
@@ -45,12 +48,12 @@ This project contains extracted D&D 5e (2024) reference data. Use these indexes 
 |----------|------|-------|
 | Spells | `books/reference/spells/{level}/` | 393 |
 | Creatures | `books/reference/creatures/` | 592 |
-| Magic Items | `books/reference/items/` | 1,244 |
+| Magic Items | `books/reference/items/` | 1,250 |
 | Equipment | `books/reference/equipment/` | 264 |
-| Classes | `books/reference/classes/` | 12 + 48 subclasses |
+| Classes | `books/reference/classes/` | 13 + 53 subclasses |
 | Feats | `books/reference/feats/` | 77 |
 | Backgrounds | `books/reference/backgrounds/` | 18 |
-| Species | `books/reference/species/` | 16 |
+| Species | `books/reference/species/` | 21 |
 | Rules/Conditions | `books/reference/rules/` | 161 |
 | Vehicles | `books/reference/vehicles/` | 17 |
 | Optional Features | `books/reference/optional-features/` | 58 |
@@ -81,6 +84,7 @@ Find CR 5 creatures: Read `books/cross-references/creatures-by-cr.md` section "#
 - XMM (Monster Manual 2024)
 - AAG (Astral Adventurer's Guide)
 - BAM (Boo's Astral Menagerie)
+- EFA (Eberron: Forge of the Artificer - Artificer class, species, magic items only)
 
 ## Regenerating Data
 
