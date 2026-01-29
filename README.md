@@ -34,6 +34,36 @@ Extracts D&D 5e (2024) content from the 5etools data repository and converts it 
 | Spelljammer Academy | SJA | Adventure |
 | Eberron: Forge of the Artificer | EFA | Supplement (Artificer only) |
 
+### Customizing Sources
+
+By default, extraction includes **2024 Core + Spelljammer + Artificer**:
+- XPHB, XDMG, XMM (2024 rules)
+- AAG, BAM, LoX, SJA (Spelljammer)
+- EFA (Artificer class only)
+
+To customize:
+
+**Option 1: Config file** - Copy `sources.yaml.example` to `sources.yaml`:
+
+```yaml
+# Use a preset
+preset: 2024-core
+
+# Or list specific sources
+sources:
+  - XPHB
+  - XDMG
+  - XMM
+```
+
+**Option 2: Command line override** (for one-off extractions):
+
+```bash
+make extract SOURCES="XPHB,XMM"
+```
+
+See `sources.yaml.example` for all available presets and source codes.
+
 ## Extracted Reference Data
 
 | Category | Count | Path |
@@ -116,16 +146,13 @@ Instead of running commands, simply tell the AI what you need:
 
 The AI uses the extracted reference data and campaign tools automatically—you don't need to know the underlying commands.
 
-### Setup
+After running `make` (which handles all setup), initialize your campaign:
 
 ```bash
-# One-time setup
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+python scripts/campaign/init_campaign.py "Spelljammer Adventures"
 ```
 
-Then ask the AI: *"Initialize a campaign called Spelljammer Adventures"*
+Or just ask the AI: *"Initialize a campaign called Spelljammer Adventures"*
 
 ### How It Works
 

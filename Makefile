@@ -35,9 +35,15 @@ submodule:
 	@echo "Submodule ready."
 
 # Run the extraction script
+# Usage: make extract
+# Or: make extract SOURCES="XPHB,XDMG"
 extract:
 	@echo "Extracting D&D reference data..."
+ifdef SOURCES
+	@DND_SOURCES="$(SOURCES)" $(PYTHON) scripts/extract_all.py
+else
 	@$(PYTHON) scripts/extract_all.py
+endif
 	@echo "Extraction complete. See books/ directory."
 
 # Clean extracted data (can be regenerated)
@@ -132,7 +138,8 @@ help:
 	@echo "  make              - Full setup: install deps, init submodule, extract (default)"
 	@echo "  make install      - Create venv and install Python requirements"
 	@echo "  make submodule    - Initialize/update 5etools-src submodule only"
-	@echo "  make extract      - Run extraction script only"
+	@echo "  make extract      - Run extraction (uses sources.yaml or defaults)"
+	@echo "  make extract SOURCES=\"XPHB,XMM\"  - Extract specific sources only"
 	@echo "  make clean        - Remove extracted books/ directory"
 	@echo ""
 	@echo "Campaign Commands:"

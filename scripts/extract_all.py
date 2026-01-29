@@ -29,9 +29,13 @@ from extractors import (
     SkillExtractor, ItemMasteryExtractor, EncounterExtractor, LootExtractor,
     IndexCollector
 )
+from lib.source_config import SourceConfig
 
 # Global storage for extractors (for index generation)
 EXTRACTORS = {}
+
+# Global source configuration (loaded in main())
+SOURCE_CONFIG: SourceConfig = None
 
 # Repository root (parent of scripts/)
 REPO_ROOT = Path(__file__).parent.parent
@@ -40,57 +44,105 @@ BOOKS_DIR = REPO_ROOT / "books"
 REFERENCE_DIR = BOOKS_DIR / "reference"
 EXTRACT_SCRIPT = REPO_ROOT / "scripts" / "extract_book.py"
 
-# Books to extract
+# Books to extract (filtered by SOURCE_CONFIG)
+# Each entry has a "code" field that maps to source codes
 EXTRACTIONS = [
     # Core 2024 Rules
     {
         "name": "Player's Handbook 2024",
+        "code": "XPHB",
         "source": DATA_DIR / "book" / "book-xphb.json",
         "output": BOOKS_DIR / "core" / "xphb",
     },
     {
         "name": "Dungeon Master's Guide 2024",
+        "code": "XDMG",
         "source": DATA_DIR / "book" / "book-xdmg.json",
         "output": BOOKS_DIR / "core" / "xdmg",
     },
     {
         "name": "Monster Manual 2024",
+        "code": "XMM",
         "source": DATA_DIR / "book" / "book-xmm.json",
         "output": BOOKS_DIR / "core" / "xmm",
     },
     # Spelljammer Setting
     {
         "name": "Astral Adventurer's Guide",
+        "code": "AAG",
         "source": DATA_DIR / "book" / "book-aag.json",
         "output": BOOKS_DIR / "spelljammer" / "aag",
     },
     {
         "name": "Boo's Astral Menagerie (Book)",
+        "code": "BAM",
         "source": DATA_DIR / "book" / "book-bam.json",
         "output": BOOKS_DIR / "spelljammer" / "bam",
     },
     {
         "name": "Boo's Astral Menagerie (Creatures)",
+        "code": "BAM",
         "source": DATA_DIR / "bestiary" / "bestiary-bam.json",
         "output": BOOKS_DIR / "spelljammer" / "bam",
     },
     # Spelljammer Adventures
     {
         "name": "Light of Xaryxis",
+        "code": "LoX",
         "source": DATA_DIR / "adventure" / "adventure-lox.json",
         "output": BOOKS_DIR / "spelljammer" / "adventures" / "lox",
     },
     {
         "name": "Spelljammer Academy",
+        "code": "SJA",
         "source": DATA_DIR / "adventure" / "adventure-sja.json",
         "output": BOOKS_DIR / "spelljammer" / "adventures" / "sja",
     },
-    # Eberron (for Artificer class, species, and magic items only)
+    # Eberron - EFA (Artificer class and player options only)
     {
-        "name": "Eberron: Forge of the Artificer (Selected)",
+        "name": "Eberron: Artificer & Options",
+        "code": "EFA",
         "source": DATA_DIR / "book" / "book-efa.json",
         "output": BOOKS_DIR / "eberron" / "efa",
-        "chapters": [0, 1, 2, 8],  # Intro, Artificer, Character Options, Magic Items Appendix
+        "chapters": [0, 1, 2, 8],  # Intro, Artificer, Character Options, Magic Items
+    },
+    # Eberron - Full book (includes setting content)
+    {
+        "name": "Eberron: Forge of the Artificer (Full)",
+        "code": "EFA-FULL",
+        "source": DATA_DIR / "book" / "book-efa.json",
+        "output": BOOKS_DIR / "eberron" / "efa",
+        # No chapters filter = extract all
+    },
+    # Eberron: Rising from the Last War (player options only)
+    {
+        "name": "Eberron: Rising from the Last War (Options)",
+        "code": "ERLW",
+        "source": DATA_DIR / "book" / "book-erlw.json",
+        "output": BOOKS_DIR / "eberron" / "erlw",
+        "chapters": [0, 1, 12],  # Welcome, Character Creation, Treasures
+    },
+    # Eberron: Rising from the Last War (full book)
+    {
+        "name": "Eberron: Rising from the Last War (Full)",
+        "code": "ERLW-FULL",
+        "source": DATA_DIR / "book" / "book-erlw.json",
+        "output": BOOKS_DIR / "eberron" / "erlw",
+    },
+    # Explorer's Guide to Wildemount (player options only)
+    {
+        "name": "Explorer's Guide to Wildemount (Options)",
+        "code": "EGW",
+        "source": DATA_DIR / "book" / "book-egw.json",
+        "output": BOOKS_DIR / "wildemount" / "egw",
+        "chapters": [5, 7],  # Character Options, Treasures
+    },
+    # Explorer's Guide to Wildemount (full book)
+    {
+        "name": "Explorer's Guide to Wildemount (Full)",
+        "code": "EGW-FULL",
+        "source": DATA_DIR / "book" / "book-egw.json",
+        "output": BOOKS_DIR / "wildemount" / "egw",
     },
 ]
 
@@ -466,17 +518,33 @@ def extract_spells():
 
     extractor = SpellExtractor(str(spells_dir))
 
-    # Extract from XPHB (2024 PHB)
-    xphb_spells = DATA_DIR / "spells" / "spells-xphb.json"
-    if xphb_spells.exists():
-        count = extractor.extract_file(str(xphb_spells))
-        print(f"  XPHB: {count} spells")
+    # Map source codes to spell files
+    spell_files = {
+        "XPHB": "spells-xphb.json",
+        "PHB": "spells-phb.json",
+        "XGE": "spells-xge.json",
+        "TCE": "spells-tce.json",
+        "AAG": "spells-aag.json",
+        "AI": "spells-ai.json",
+        "EGW": "spells-egw.json",
+        "FTD": "spells-ftd.json",
+        "IDRotF": "spells-idrotf.json",
+        "SCC": "spells-scc.json",
+        "GGR": "spells-ggr.json",
+        "LLK": "spells-llk.json",
+    }
 
-    # Extract from AAG (Spelljammer)
-    aag_spells = DATA_DIR / "spells" / "spells-aag.json"
-    if aag_spells.exists():
-        count = extractor.extract_file(str(aag_spells))
-        print(f"  AAG: {count} spells")
+    total = 0
+    for source in SOURCE_CONFIG.sources:
+        if source in spell_files:
+            spell_file = DATA_DIR / "spells" / spell_files[source]
+            if spell_file.exists():
+                count = extractor.extract_file(str(spell_file))
+                print(f"  {source}: {count} spells")
+                total += count
+
+    if total == 0:
+        print("  No spell files found for configured sources")
 
     # Create index
     extractor.create_index()
@@ -493,29 +561,36 @@ def extract_creatures():
 
     extractor = CreatureExtractor(str(creatures_dir))
 
-    # Extract from XMM (2024 Monster Manual)
-    xmm_creatures = DATA_DIR / "bestiary" / "bestiary-xmm.json"
-    if xmm_creatures.exists():
-        count = extractor.extract_file(str(xmm_creatures))
-        print(f"  XMM: {count} creatures")
+    # Map source codes to bestiary files
+    bestiary_files = {
+        "XMM": "bestiary-xmm.json",
+        "MM": "bestiary-mm.json",
+        "MPMM": "bestiary-mpmm.json",
+        "VGM": "bestiary-vgm.json",
+        "MTF": "bestiary-mtf.json",
+        "BAM": "bestiary-bam.json",
+        "XPHB": "bestiary-xphb.json",
+        "XDMG": "bestiary-xdmg.json",
+        "FTD": "bestiary-ftd.json",
+        "IDRotF": "bestiary-idrotf.json",
+        "BGG": "bestiary-bgg.json",
+        "GGR": "bestiary-ggr.json",
+        "EGW": "bestiary-egw.json",
+        "ERLW": "bestiary-erlw.json",
+        "MOT": "bestiary-mot.json",
+    }
 
-    # Extract from BAM (Boo's Astral Menagerie)
-    bam_creatures = DATA_DIR / "bestiary" / "bestiary-bam.json"
-    if bam_creatures.exists():
-        count = extractor.extract_file(str(bam_creatures))
-        print(f"  BAM: {count} creatures")
+    total = 0
+    for source in SOURCE_CONFIG.sources:
+        if source in bestiary_files:
+            creature_file = DATA_DIR / "bestiary" / bestiary_files[source]
+            if creature_file.exists():
+                count = extractor.extract_file(str(creature_file))
+                print(f"  {source}: {count} creatures")
+                total += count
 
-    # Extract from XPHB (summon spell stat blocks)
-    xphb_creatures = DATA_DIR / "bestiary" / "bestiary-xphb.json"
-    if xphb_creatures.exists():
-        count = extractor.extract_file(str(xphb_creatures))
-        print(f"  XPHB: {count} creatures")
-
-    # Extract from XDMG (Avatar of Death, etc.)
-    xdmg_creatures = DATA_DIR / "bestiary" / "bestiary-xdmg.json"
-    if xdmg_creatures.exists():
-        count = extractor.extract_file(str(xdmg_creatures))
-        print(f"  XDMG: {count} creatures")
+    if total == 0:
+        print("  No bestiary files found for configured sources")
 
     # Create index
     extractor.create_index()
@@ -530,9 +605,8 @@ def extract_items():
     print("Extracting magic items...")
     items_dir = REFERENCE_DIR / "items"
 
-    # Filter to only our target sources (includes EFA for Artificer magic items)
-    sources = ['XDMG', 'XPHB', 'AAG', 'DMG', 'EFA']
-    extractor = ItemExtractor(str(items_dir), sources=sources)
+    # Use configured sources
+    extractor = ItemExtractor(str(items_dir), sources=SOURCE_CONFIG.sources)
 
     items_file = DATA_DIR / "items.json"
     if items_file.exists():
@@ -552,7 +626,7 @@ def extract_feats():
     print("Extracting feats...")
     feats_dir = REFERENCE_DIR / "feats"
 
-    extractor = FeatExtractor(str(feats_dir))
+    extractor = FeatExtractor(str(feats_dir), sources=SOURCE_CONFIG.sources)
 
     feats_file = DATA_DIR / "feats.json"
     if feats_file.exists():
@@ -570,7 +644,7 @@ def extract_backgrounds():
     print("Extracting backgrounds...")
     bg_dir = REFERENCE_DIR / "backgrounds"
 
-    extractor = BackgroundExtractor(str(bg_dir))
+    extractor = BackgroundExtractor(str(bg_dir), sources=SOURCE_CONFIG.sources)
 
     bg_file = DATA_DIR / "backgrounds.json"
     if bg_file.exists():
@@ -588,7 +662,7 @@ def extract_species():
     print("Extracting species...")
     species_dir = REFERENCE_DIR / "species"
 
-    extractor = SpeciesExtractor(str(species_dir))
+    extractor = SpeciesExtractor(str(species_dir), sources=SOURCE_CONFIG.sources)
 
     races_file = DATA_DIR / "races.json"
     if races_file.exists():
@@ -606,9 +680,6 @@ def extract_classes():
     print("Extracting classes...")
     classes_dir = REFERENCE_DIR / "classes"
 
-    extractor = ClassExtractor(str(classes_dir), source='XPHB')
-
-    # Process each XPHB class file
     class_dir = DATA_DIR / "class"
     class_files = [
         'class-barbarian.json',
@@ -625,30 +696,54 @@ def extract_classes():
         'class-wizard.json',
     ]
 
+    # Map sources to their class files
+    source_class_files = {
+        "XPHB": class_files,
+        "PHB": class_files,  # Same files, different source filter
+        "EFA": ['class-artificer.json'],
+        "TCE": [],  # TCE adds subclasses, not classes
+        "XGE": [],  # XGE adds subclasses, not classes
+    }
+
     total = 0
-    for class_file in class_files:
-        class_path = class_dir / class_file
-        if class_path.exists():
-            count = extractor.extract_file(str(class_path))
-            total += count
+    main_extractor = None
 
-    print(f"  XPHB: {total} classes")
+    for source in SOURCE_CONFIG.sources:
+        if source not in source_class_files:
+            continue
 
-    # Extract Artificer from EFA (Eberron: Forge of the Artificer)
-    efa_extractor = ClassExtractor(str(classes_dir), source='EFA')
-    artificer_file = class_dir / 'class-artificer.json'
-    if artificer_file.exists():
-        efa_count = efa_extractor.extract_file(str(artificer_file))
-        print(f"  EFA: {efa_count} classes (Artificer)")
-        total += efa_count
-        # Merge index entries
-        extractor.index_entries.extend(efa_extractor.index_entries)
+        files = source_class_files[source]
+        if not files:
+            continue
+
+        extractor = ClassExtractor(str(classes_dir), source=source)
+
+        source_count = 0
+        for class_file in files:
+            class_path = class_dir / class_file
+            if class_path.exists():
+                count = extractor.extract_file(str(class_path))
+                source_count += count
+
+        if source_count > 0:
+            print(f"  {source}: {source_count} classes")
+            total += source_count
+
+            if main_extractor is None:
+                main_extractor = extractor
+            else:
+                main_extractor.index_entries.extend(extractor.index_entries)
+
+    if main_extractor is None:
+        # No classes extracted, create empty extractor
+        main_extractor = ClassExtractor(str(classes_dir), source='XPHB')
+        print("  No class files found for configured sources")
 
     print(f"  Total: {total} classes")
 
     # Create index
-    extractor.create_index()
-    EXTRACTORS['classes'] = extractor
+    main_extractor.create_index()
+    EXTRACTORS['classes'] = main_extractor
     print(f"  -> {classes_dir.relative_to(REPO_ROOT)}/")
 
 
@@ -669,7 +764,7 @@ def extract_class_features():
         'class-artificer.json',
     ]
 
-    sources = ['XPHB', 'EFA']
+    # Use configured sources
     seen_features = set()
 
     for class_file in class_files:
@@ -684,7 +779,7 @@ def extract_class_features():
 
         for feature in class_features:
             source = feature.get('source', '').upper()
-            if source not in sources:
+            if not SOURCE_CONFIG.includes(source):
                 continue
 
             name = feature.get('name', '')
@@ -743,7 +838,7 @@ def extract_equipment():
     print("Extracting equipment...")
     equip_dir = REFERENCE_DIR / "equipment"
 
-    extractor = EquipmentExtractor(str(equip_dir))
+    extractor = EquipmentExtractor(str(equip_dir), sources=SOURCE_CONFIG.sources)
 
     # Extract base items (weapons, armor) from items-base.json
     base_items_file = DATA_DIR / "items-base.json"
@@ -773,7 +868,7 @@ def extract_rules():
     print("Extracting rules glossary...")
     rules_dir = REFERENCE_DIR / "rules"
 
-    extractor = RulesExtractor(str(rules_dir))
+    extractor = RulesExtractor(str(rules_dir), sources=SOURCE_CONFIG.sources)
 
     # Extract conditions and status effects
     conditions_file = DATA_DIR / "conditionsdiseases.json"
@@ -815,7 +910,7 @@ def extract_vehicles():
     print("Extracting vehicles...")
     vehicles_dir = REFERENCE_DIR / "vehicles"
 
-    extractor = VehicleExtractor(str(vehicles_dir))
+    extractor = VehicleExtractor(str(vehicles_dir), sources=SOURCE_CONFIG.sources)
 
     vehicles_file = DATA_DIR / "vehicles.json"
     if vehicles_file.exists():
@@ -831,7 +926,7 @@ def extract_optional_features():
     print("Extracting optional features...")
     features_dir = REFERENCE_DIR / "optional-features"
 
-    extractor = OptionalFeatureExtractor(str(features_dir))
+    extractor = OptionalFeatureExtractor(str(features_dir), sources=SOURCE_CONFIG.sources)
 
     features_file = DATA_DIR / "optionalfeatures.json"
     if features_file.exists():
@@ -847,7 +942,7 @@ def extract_traps():
     print("Extracting traps and hazards...")
     traps_dir = REFERENCE_DIR / "traps-hazards"
 
-    extractor = TrapExtractor(str(traps_dir))
+    extractor = TrapExtractor(str(traps_dir), sources=SOURCE_CONFIG.sources)
 
     traps_file = DATA_DIR / "trapshazards.json"
     if traps_file.exists():
@@ -1072,9 +1167,17 @@ def generate_indexes():
 
 
 def main():
+    global SOURCE_CONFIG
+
     print("=" * 60)
     print("D&D Book Extraction for Spelljammer Campaign")
     print("=" * 60)
+    print()
+
+    # Load source configuration
+    print("Loading source configuration...")
+    SOURCE_CONFIG = SourceConfig.load(repo_root=REPO_ROOT)
+    print(f"  Sources: {', '.join(SOURCE_CONFIG.sources)}")
     print()
 
     # Check submodule
@@ -1084,11 +1187,16 @@ def main():
     BOOKS_DIR.mkdir(parents=True, exist_ok=True)
     REFERENCE_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Extract all books
+    # Extract books (filtered by source config)
     print("Extracting books...")
     print()
 
+    extracted_count = 0
     for extraction in EXTRACTIONS:
+        code = extraction.get("code", "")
+        if not SOURCE_CONFIG.includes(code):
+            continue  # Skip books not in configured sources
+
         name = extraction["name"]
         source = extraction["source"]
         output = extraction["output"]
@@ -1097,6 +1205,10 @@ def main():
         print(f"  {name}...")
         if extract_book(name, source, output, chapters=chapters):
             print(f"    -> {output.relative_to(REPO_ROOT)}/")
+            extracted_count += 1
+
+    if extracted_count == 0:
+        print("  No books matched configured sources")
 
     print()
 

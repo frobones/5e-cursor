@@ -4,6 +4,9 @@ books/
 # Campaign data (user-specific, not version controlled)
 /campaign/
 
+# Source configuration (user-specific, see sources.yaml.example)
+/sources.yaml
+
 # Python
 __pycache__/
 *.py[cod]

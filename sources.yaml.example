@@ -1,0 +1,155 @@
+# =============================================================================
+# D&D Source Book Configuration
+# =============================================================================
+#
+# This file controls which D&D source books are included during extraction.
+#
+# SETUP:
+#   1. Copy this file to 'sources.yaml' (remove the .example extension)
+#   2. Uncomment ONE of the configuration options below
+#   3. Run 'make extract' to regenerate the reference data
+#
+# Without a sources.yaml file, extraction uses the DEFAULT sources:
+#   2024 Core (XPHB, XDMG, XMM) + Spelljammer (AAG, BAM, LoX, SJA) + Artificer (EFA)
+#
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# OPTION 1: Use a preset (recommended for most users)
+# -----------------------------------------------------------------------------
+# Uncomment ONE preset line:
+
+# preset: default           # 2024 Core + Spelljammer + Artificer (same as no config)
+# preset: 2024-core         # XPHB, XDMG, XMM only
+# preset: 2014-core         # PHB, DMG, MM (legacy rules)
+# preset: spelljammer       # Full Spelljammer campaign (same as default)
+# preset: spelljammer-minimal  # Just XPHB, AAG, BAM (no adventures)
+
+
+# -----------------------------------------------------------------------------
+# OPTION 2: Explicit source list (for full control)
+# -----------------------------------------------------------------------------
+# Uncomment 'sources:' and list the source codes you want:
+
+# sources:
+#   - XPHB
+#   - XDMG
+#   - XMM
+
+
+# -----------------------------------------------------------------------------
+# OPTION 3: Preset + additional sources
+# -----------------------------------------------------------------------------
+# Start with a preset and add more:
+
+# preset: 2024-core
+# additional_sources:
+#   - AAG
+#   - BAM
+
+
+# =============================================================================
+# AVAILABLE SOURCE CODES
+# =============================================================================
+#
+# 2024 EDITION (Current)
+# ----------------------
+# XPHB     Player's Handbook (2024)
+# XDMG     Dungeon Master's Guide (2024)
+# XMM      Monster Manual (2025)
+#
+# 2014 EDITION (Legacy)
+# ----------------------
+# PHB      Player's Handbook (2014)
+# DMG      Dungeon Master's Guide (2014)
+# MM       Monster Manual (2014)
+#
+# MAJOR SUPPLEMENTS
+# -----------------
+# TCE      Tasha's Cauldron of Everything
+# XGE      Xanathar's Guide to Everything
+# MPMM     Mordenkainen Presents: Monsters of the Multiverse
+# FTD      Fizban's Treasury of Dragons
+# VGM      Volo's Guide to Monsters
+# MTF      Mordenkainen's Tome of Foes
+#
+# SPELLJAMMER
+# -----------
+# AAG      Astral Adventurer's Guide
+# BAM      Boo's Astral Menagerie
+#
+# EBERRON
+# -------
+# EFA      Eberron: Artificer & Options (Ch 1-2, 8 only)
+# EFA-FULL Eberron: Forge of the Artificer (full book with setting)
+# ERLW     Eberron: Rising from the Last War (player options only)
+# ERLW-FULL Eberron: Rising from the Last War (full book with setting)
+#
+# WILDEMOUNT (Critical Role)
+# --------------------------
+# EGW      Explorer's Guide to Wildemount (Dunamancy options only)
+# EGW-FULL Explorer's Guide to Wildemount (full book with setting)
+#
+# RAVNICA / THEROS / STRIXHAVEN
+# -----------------------------
+# GGR      Guildmasters' Guide to Ravnica
+# MOT      Mythic Odysseys of Theros
+# SCC      Strixhaven: A Curriculum of Chaos
+#
+# RAVENLOFT
+# ---------
+# VRGR     Van Richten's Guide to Ravenloft
+#
+# OTHER SUPPLEMENTS
+# -----------------
+# AI       Acquisitions Incorporated
+# SCAG     Sword Coast Adventurer's Guide
+# BGG      Bigby Presents: Glory of the Giants
+#
+# =============================================================================
+# EXAMPLES
+# =============================================================================
+#
+# Example 1: Just 2024 core books
+# -------------------------------
+# sources:
+#   - XPHB
+#   - XDMG
+#   - XMM
+#
+# Example 2: Spelljammer campaign with 2024 rules
+# ------------------------------------------------
+# sources:
+#   - XPHB
+#   - XDMG
+#   - XMM
+#   - AAG
+#   - BAM
+#
+# Example 3: Kitchen sink (everything)
+# ------------------------------------
+# sources:
+#   - XPHB
+#   - XDMG
+#   - XMM
+#   - TCE
+#   - XGE
+#   - MPMM
+#   - FTD
+#   - AAG
+#   - BAM
+#   - EFA
+#
+# Example 4: Legacy 2014 game
+# ---------------------------
+# sources:
+#   - PHB
+#   - DMG
+#   - MM
+#   - XGE
+#   - TCE
+#   - VGM
+#   - MTF
+#
+# =============================================================================
