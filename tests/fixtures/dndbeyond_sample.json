@@ -1,0 +1,312 @@
+{
+  "id": 0,
+  "success": true,
+  "message": "Character successfully received.",
+  "data": {
+    "id": 157884334,
+    "userId": 100022290,
+    "username": "Frobones",
+    "name": "Meilin Starwell",
+    "gender": "Female",
+    "age": 26,
+    "hair": "Indigo-black",
+    "eyes": "Bright blue",
+    "skin": "Warm light-olive",
+    "height": "5'0\"",
+    "weight": 94,
+    "baseHitPoints": 8,
+    "currentXp": 0,
+    "alignmentId": 2,
+    "stats": [
+      {"id": 1, "name": null, "value": 8},
+      {"id": 2, "name": null, "value": 15},
+      {"id": 3, "name": null, "value": 12},
+      {"id": 4, "name": null, "value": 13},
+      {"id": 5, "name": null, "value": 14},
+      {"id": 6, "name": null, "value": 10}
+    ],
+    "bonusStats": [
+      {"id": 1, "name": null, "value": null},
+      {"id": 2, "name": null, "value": null},
+      {"id": 3, "name": null, "value": null},
+      {"id": 4, "name": null, "value": null},
+      {"id": 5, "name": null, "value": null},
+      {"id": 6, "name": null, "value": null}
+    ],
+    "race": {
+      "fullName": "Human",
+      "baseName": "Human",
+      "racialTraits": [
+        {
+          "definition": {
+            "name": "Resourceful",
+            "description": "You gain Heroic Inspiration whenever you finish a Long Rest."
+          }
+        },
+        {
+          "definition": {
+            "name": "Skillful",
+            "description": "You gain proficiency in one skill of your choice."
+          }
+        },
+        {
+          "definition": {
+            "name": "Versatile",
+            "description": "You gain an Origin feat of your choice."
+          }
+        }
+      ]
+    },
+    "classes": [
+      {
+        "id": 218660830,
+        "level": 1,
+        "isStartingClass": true,
+        "hitDiceUsed": 0,
+        "definition": {
+          "name": "Rogue",
+          "hitDice": 8
+        },
+        "classFeatures": [
+          {
+            "definition": {
+              "name": "Sneak Attack",
+              "description": "You know how to strike subtly and exploit a foe's distraction.",
+              "snippet": "Once per turn you can deal an extra 1d6 damage..."
+            }
+          },
+          {
+            "definition": {
+              "name": "Expertise",
+              "description": "You gain Expertise in two of your skill proficiencies of your choice."
+            }
+          },
+          {
+            "definition": {
+              "name": "Thieves' Cant",
+              "description": "You know Thieves' Cant and one other language of your choice."
+            }
+          }
+        ]
+      }
+    ],
+    "feats": [
+      {
+        "definition": {
+          "name": "Healer",
+          "description": "You gain the following benefits...",
+          "snippet": "Battle Medic. As a Utilize action..."
+        }
+      },
+      {
+        "definition": {
+          "name": "Skilled",
+          "description": "You gain proficiency in any combination of three skills or tools of your choice."
+        }
+      }
+    ],
+    "inventory": [
+      {
+        "id": 927741913,
+        "quantity": 1,
+        "equipped": true,
+        "definition": {
+          "name": "Leather",
+          "type": "Light Armor",
+          "armorClass": 11,
+          "weight": 10.0
+        }
+      },
+      {
+        "id": 927740676,
+        "quantity": 1,
+        "equipped": true,
+        "definition": {
+          "name": "Crossbow, Hand",
+          "type": "Crossbow, Hand",
+          "damage": {"diceString": "1d6"},
+          "damageType": "Piercing",
+          "range": 30,
+          "longRange": 120
+        }
+      },
+      {
+        "id": 927688071,
+        "quantity": 1,
+        "equipped": true,
+        "definition": {
+          "name": "Dagger",
+          "type": "Dagger",
+          "damage": {"diceString": "1d4"},
+          "damageType": "Piercing",
+          "range": 20,
+          "longRange": 60
+        }
+      },
+      {
+        "id": 927688072,
+        "quantity": 1,
+        "equipped": true,
+        "definition": {
+          "name": "Backpack",
+          "type": "Gear"
+        }
+      },
+      {
+        "id": 927688073,
+        "quantity": 1,
+        "equipped": false,
+        "definition": {
+          "name": "Herbalism Kit",
+          "type": "Gear"
+        }
+      },
+      {
+        "id": 927688074,
+        "quantity": 1,
+        "equipped": false,
+        "definition": {
+          "name": "Thieves' Tools",
+          "type": "Gear"
+        }
+      },
+      {
+        "id": 927688075,
+        "quantity": 1,
+        "equipped": false,
+        "definition": {
+          "name": "Healer's Kit",
+          "type": "Gear"
+        }
+      }
+    ],
+    "currencies": {
+      "cp": 0,
+      "sp": 0,
+      "gp": 0,
+      "ep": 0,
+      "pp": 0
+    },
+    "modifiers": {
+      "race": [
+        {
+          "type": "proficiency",
+          "subType": "history",
+          "friendlySubtypeName": "History"
+        },
+        {
+          "type": "bonus",
+          "subType": "dexterity-score",
+          "value": 2
+        },
+        {
+          "type": "bonus",
+          "subType": "intelligence-score",
+          "value": 1
+        },
+        {
+          "type": "language",
+          "subType": "common"
+        },
+        {
+          "type": "language",
+          "subType": "common-sign-language"
+        },
+        {
+          "type": "language",
+          "subType": "halfling"
+        }
+      ],
+      "class": [
+        {
+          "type": "proficiency",
+          "subType": "dexterity-saving-throws"
+        },
+        {
+          "type": "proficiency",
+          "subType": "intelligence-saving-throws"
+        },
+        {
+          "type": "proficiency",
+          "subType": "investigation"
+        },
+        {
+          "type": "proficiency",
+          "subType": "sleight-of-hand"
+        },
+        {
+          "type": "proficiency",
+          "subType": "perception"
+        },
+        {
+          "type": "proficiency",
+          "subType": "stealth"
+        },
+        {
+          "type": "proficiency",
+          "subType": "light-armor"
+        },
+        {
+          "type": "proficiency",
+          "subType": "thieves-tools"
+        },
+        {
+          "type": "expertise",
+          "subType": "medicine"
+        },
+        {
+          "type": "expertise",
+          "subType": "investigation"
+        },
+        {
+          "type": "language",
+          "subType": "thieves-cant"
+        },
+        {
+          "type": "language",
+          "subType": "undercommon"
+        }
+      ],
+      "background": [
+        {
+          "type": "proficiency",
+          "subType": "medicine"
+        },
+        {
+          "type": "proficiency",
+          "subType": "nature"
+        },
+        {
+          "type": "proficiency",
+          "subType": "herbalism-kit"
+        }
+      ],
+      "feat": [
+        {
+          "type": "proficiency",
+          "subType": "deception"
+        },
+        {
+          "type": "proficiency",
+          "subType": "persuasion"
+        },
+        {
+          "type": "proficiency",
+          "subType": "insight"
+        }
+      ]
+    },
+    "traits": {
+      "personalityTraits": "Writes everything down; hates missing data. Dry, clinical humor when tension spikes.",
+      "ideals": "Crew safety over reputation.",
+      "bonds": "The ledger page / mindersand trail: the proof she carries.",
+      "flaws": "Curiosity overrides comfort.",
+      "appearance": "Meilin is compact and practical..."
+    },
+    "notes": {
+      "allies": "Kaito Starwell (father), Meredin Sandyfoot (fixer/patron)...",
+      "organizations": "Meredin Sandyfoot's network, Smith's Coster...",
+      "enemies": "Smith's Coster, Corvin Hale..."
+    }
+  }
+}

@@ -1,0 +1,111 @@
+{
+  "total_entries": 20,
+  "entries": [
+    {
+      "name": "Fireball",
+      "type": "spells",
+      "path": "reference/spells/3rd-level/fireball.md",
+      "level": 3,
+      "school": "Evocation"
+    },
+    {
+      "name": "Magic Missile",
+      "type": "spells",
+      "path": "reference/spells/1st-level/magic-missile.md",
+      "level": 1,
+      "school": "Evocation"
+    },
+    {
+      "name": "Sneak Attack",
+      "type": "class-features",
+      "path": "reference/classes/rogue/sneak-attack.md"
+    },
+    {
+      "name": "Expertise",
+      "type": "class-features",
+      "path": "reference/classes/rogue/expertise.md"
+    },
+    {
+      "name": "Healer",
+      "type": "feats",
+      "path": "reference/feats/healer.md"
+    },
+    {
+      "name": "Skilled",
+      "type": "feats",
+      "path": "reference/feats/skilled.md"
+    },
+    {
+      "name": "Leather Armor",
+      "type": "equipment",
+      "path": "reference/equipment/armor/leather.md"
+    },
+    {
+      "name": "Dagger",
+      "type": "equipment",
+      "path": "reference/equipment/weapons/dagger.md"
+    },
+    {
+      "name": "Hand Crossbow",
+      "type": "equipment",
+      "path": "reference/equipment/weapons/hand-crossbow.md"
+    },
+    {
+      "name": "Thieves' Tools",
+      "type": "equipment",
+      "path": "reference/equipment/gear/thieves-tools.md"
+    },
+    {
+      "name": "Herbalism Kit",
+      "type": "equipment",
+      "path": "reference/equipment/gear/herbalism-kit.md"
+    },
+    {
+      "name": "Healer's Kit",
+      "type": "equipment",
+      "path": "reference/equipment/gear/healers-kit.md"
+    },
+    {
+      "name": "Backpack",
+      "type": "equipment",
+      "path": "reference/equipment/gear/backpack.md"
+    },
+    {
+      "name": "Human",
+      "type": "species",
+      "path": "reference/species/human.md"
+    },
+    {
+      "name": "Rogue",
+      "type": "classes",
+      "path": "reference/classes/rogue/rogue.md"
+    },
+    {
+      "name": "Goblin",
+      "type": "creatures",
+      "path": "reference/creatures/goblin.md",
+      "cr": "1/4"
+    },
+    {
+      "name": "Orc",
+      "type": "creatures",
+      "path": "reference/creatures/orc.md",
+      "cr": "1/2"
+    },
+    {
+      "name": "Prone",
+      "type": "rules",
+      "path": "reference/rules/conditions/prone.md"
+    },
+    {
+      "name": "Poisoned",
+      "type": "rules",
+      "path": "reference/rules/conditions/poisoned.md"
+    },
+    {
+      "name": "Incapacitated",
+      "type": "rules",
+      "path": "reference/rules/conditions/incapacitated.md"
+    }
+  ]
+}

@@ -1,6 +1,9 @@
 # Extracted D&D content (proprietary - regenerate with scripts/extract_all.py)
 books/
 
+# Campaign data (user-specific, not version controlled)
+/campaign/
+
 # Python
 __pycache__/
 *.py[cod]

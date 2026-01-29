@@ -61,7 +61,7 @@ See `books/README.md` for the complete list after extraction.
 
 ## Project Structure
 
-```
+```text
 5e-cursor/
 ├── 5etools-src/              # Git submodule (5etools data)
 ├── books/                    # Extracted content (gitignored)
@@ -95,6 +95,98 @@ See `books/README.md` for the complete list after extraction.
 ## Cursor Integration
 
 The `.cursor/rules/dnd-reference-lookup.mdc` rule guides Cursor on how to efficiently look up D&D reference data. The 5etools-src submodule is excluded via `.cursorignore` to keep AI context focused on the extracted markdown.
+
+## Campaign Assistant
+
+This project is designed for **AI-first D&D campaign management**. Just talk to Cursor AI in natural language—it has access to all reference data and campaign tools.
+
+### Just Ask
+
+Instead of running commands, simply tell the AI what you need:
+
+| You Say | The AI Does |
+| ------- | ----------- |
+| *"Import my character from D&D Beyond: [url]"* | Fetches character, creates linked markdown sheet |
+| *"Build a hard encounter for my party"* | Reads party level/size, generates balanced encounter |
+| *"How does the prone condition work?"* | Looks up rules with inline citations |
+| *"Create a new session called 'Into the Underdark'"* | Creates session file, updates session log |
+| *"Add an NPC named Vex, she's a tavern owner ally"* | Creates NPC file, updates NPC index |
+| *"What spells does Meilin have prepared?"* | Reads character sheet, lists spells |
+| *"What happened in session 3?"* | Reads session summary |
+
+The AI uses the extracted reference data and campaign tools automatically—you don't need to know the underlying commands.
+
+### Setup
+
+```bash
+# One-time setup
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Then ask the AI: *"Initialize a campaign called Spelljammer Adventures"*
+
+### How It Works
+
+1. **Reference Data** (`books/`) - Extracted D&D 5e content the AI can search and cite
+2. **Campaign Data** (`campaign/`) - Your party, NPCs, locations, sessions in markdown
+3. **Cursor Rules** (`.cursor/rules/`) - Guide the AI on how to use the data efficiently
+4. **Campaign Tools** (`scripts/campaign/`) - Python scripts the AI invokes when needed
+
+### What the AI Can Do
+
+| Capability | Description |
+| ---------- | ----------- |
+| **Character Import** | Pull full character sheets from D&D Beyond with auto-linked features |
+| **Encounter Building** | Generate balanced encounters using DMG XP thresholds |
+| **Rules Arbitration** | Answer rules questions with inline quotes and source citations |
+| **Session Tracking** | Create and review session summaries |
+| **Campaign State** | Manage NPCs, locations, and campaign notes |
+| **Reference Lookup** | Find spells, creatures, items, feats, conditions instantly |
+
+### Campaign Data Structure
+
+```text
+campaign/
+├── campaign.md            # Campaign overview
+├── party/
+│   ├── index.md           # Party roster
+│   └── characters/        # Imported character sheets
+├── npcs/
+│   ├── index.md           # NPC index by role
+│   └── *.md               # Individual NPCs
+├── locations/
+│   ├── index.md           # Location index
+│   └── *.md               # Individual locations
+├── sessions/
+│   ├── index.md           # Session log
+│   └── session-*.md       # Session summaries
+└── encounters/
+    ├── index.md           # Saved encounters
+    └── *.md               # Individual encounters
+```
+
+### CLI Reference (Optional)
+
+The AI uses these tools automatically, but you can also run them directly:
+
+```bash
+# Character import
+python scripts/campaign/import_character.py <dndbeyond-url>
+
+# Encounter builder
+python scripts/campaign/encounter_builder.py --auto --difficulty hard
+
+# Rules lookup
+python scripts/campaign/rules_engine.py --spell "fireball"
+
+# Session management
+python scripts/campaign/session_manager.py new "Session Title"
+
+# Campaign management
+python scripts/campaign/campaign_manager.py add-npc "Name" --role ally
+```
 
 ## License
 

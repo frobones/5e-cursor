@@ -1,6 +1,10 @@
 # D&D Reference Extraction Makefile
 
 .PHONY: all submodule extract clean help
+.PHONY: campaign-init import-character encounter rules session add-npc add-location test
+
+# Detect venv python
+PYTHON := $(shell [ -f .venv/bin/python ] && echo ".venv/bin/python" || echo "python3")
 
 # Default target: ensure submodule is ready, then extract
 all: submodule extract
@@ -25,13 +29,107 @@ clean:
 	rm -rf books/
 	@echo "Clean complete. Run 'make extract' to regenerate."
 
+# ==================== Campaign Assistant ====================
+
+# Initialize a new campaign
+# Usage: make campaign-init NAME="My Campaign"
+campaign-init:
+	@$(PYTHON) scripts/campaign/init_campaign.py "$(or $(NAME),My Campaign)"
+
+# Import a character from D&D Beyond
+# Usage: make import-character URL="https://www.dndbeyond.com/characters/12345"
+import-character:
+ifndef URL
+	$(error URL is required. Usage: make import-character URL="https://www.dndbeyond.com/characters/12345")
+endif
+	@$(PYTHON) scripts/campaign/import_character.py "$(URL)"
+
+# Build an encounter
+# Usage: make encounter LEVEL=3 SIZE=4 DIFFICULTY=medium
+# Or: make encounter AUTO=1 DIFFICULTY=hard
+encounter:
+ifdef AUTO
+	@$(PYTHON) scripts/campaign/encounter_builder.py --auto --difficulty $(or $(DIFFICULTY),medium)
+else
+	@$(PYTHON) scripts/campaign/encounter_builder.py --level $(or $(LEVEL),1) --size $(or $(SIZE),4) --difficulty $(or $(DIFFICULTY),medium)
+endif
+
+# Look up a rule
+# Usage: make rules QUERY="fireball"
+# Or: make rules SPELL="magic missile"
+rules:
+ifdef SPELL
+	@$(PYTHON) scripts/campaign/rules_engine.py --spell "$(SPELL)"
+else ifdef CREATURE
+	@$(PYTHON) scripts/campaign/rules_engine.py --creature "$(CREATURE)"
+else ifdef FEAT
+	@$(PYTHON) scripts/campaign/rules_engine.py --feat "$(FEAT)"
+else
+	@$(PYTHON) scripts/campaign/rules_engine.py "$(or $(QUERY),help)"
+endif
+
+# Create a new session
+# Usage: make session TITLE="The Beginning"
+session:
+	@$(PYTHON) scripts/campaign/session_manager.py new "$(or $(TITLE),Untitled Session)"
+
+# List sessions
+sessions:
+	@$(PYTHON) scripts/campaign/session_manager.py list
+
+# Add an NPC
+# Usage: make add-npc NAME="Elara" ROLE=ally
+add-npc:
+ifndef NAME
+	$(error NAME is required. Usage: make add-npc NAME="NPC Name" ROLE=ally)
+endif
+	@$(PYTHON) scripts/campaign/campaign_manager.py add-npc "$(NAME)" --role $(or $(ROLE),neutral)
+
+# Add a location
+# Usage: make add-location NAME="The Tavern" TYPE=tavern
+add-location:
+ifndef NAME
+	$(error NAME is required. Usage: make add-location NAME="Location Name" TYPE=tavern)
+endif
+	@$(PYTHON) scripts/campaign/campaign_manager.py add-location "$(NAME)" --type $(or $(TYPE),other)
+
+# List NPCs
+npcs:
+	@$(PYTHON) scripts/campaign/campaign_manager.py list-npcs
+
+# List locations
+locations:
+	@$(PYTHON) scripts/campaign/campaign_manager.py list-locations
+
+# Run tests
+test:
+	@$(PYTHON) -m pytest tests/ -v
+
+# ==================== Help ====================
+
 # Show help
 help:
-	@echo "D&D Reference Extraction"
+	@echo "D&D Reference Extraction & Campaign Assistant"
 	@echo ""
-	@echo "Usage:"
-	@echo "  make           - Initialize submodule (if needed) and extract (default)"
-	@echo "  make extract   - Run extraction script only"
-	@echo "  make submodule - Initialize/update 5etools-src submodule only"
-	@echo "  make clean     - Remove extracted books/ directory"
-	@echo "  make help      - Show this help message"
+	@echo "Reference Commands:"
+	@echo "  make              - Initialize submodule and extract (default)"
+	@echo "  make extract      - Run extraction script only"
+	@echo "  make submodule    - Initialize/update 5etools-src submodule only"
+	@echo "  make clean        - Remove extracted books/ directory"
+	@echo ""
+	@echo "Campaign Commands:"
+	@echo "  make campaign-init NAME=\"My Campaign\"  - Initialize a new campaign"
+	@echo "  make import-character URL=\"...\"        - Import D&D Beyond character"
+	@echo "  make encounter LEVEL=3 SIZE=4 DIFFICULTY=medium"
+	@echo "  make encounter AUTO=1 DIFFICULTY=hard   - Auto-detect party"
+	@echo "  make rules QUERY=\"prone condition\"     - Look up a rule"
+	@echo "  make rules SPELL=\"fireball\"            - Look up a spell"
+	@echo "  make session TITLE=\"Session Name\"      - Create new session"
+	@echo "  make sessions                          - List all sessions"
+	@echo "  make add-npc NAME=\"NPC\" ROLE=ally      - Add an NPC"
+	@echo "  make add-location NAME=\"Place\" TYPE=tavern"
+	@echo "  make npcs                              - List all NPCs"
+	@echo "  make locations                         - List all locations"
+	@echo "  make test                              - Run tests"
+	@echo ""
+	@echo "  make help         - Show this help message"

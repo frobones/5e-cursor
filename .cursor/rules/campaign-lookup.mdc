@@ -1,0 +1,127 @@
+---
+description: "Guides navigation of campaign data (party, NPCs, locations, sessions, encounters)"
+globs:
+  - "campaign/**"
+  - "scripts/campaign/**"
+---
+
+# Campaign Data Lookup
+
+Guides efficient lookup and navigation of campaign data within the 5e-cursor project.
+
+## Campaign Structure
+
+Campaign data is stored in `campaign/` with the following structure:
+
+```
+campaign/
+├── campaign.md          # Campaign overview and metadata
+├── party/
+│   ├── index.md         # Party roster with average level, size
+│   └── characters/      # Imported character sheets (*.md)
+├── npcs/
+│   ├── index.md         # NPCs organized by role (ally/neutral/enemy)
+│   └── *.md             # Individual NPC files
+├── locations/
+│   ├── index.md         # Location index
+│   └── *.md             # Individual location files
+├── sessions/
+│   ├── index.md         # Chronological session log
+│   └── session-*.md     # Session summaries (session-001.md, etc.)
+└── encounters/
+    ├── index.md         # Saved encounter index
+    └── *.md             # Individual encounter files
+```
+
+## Finding Campaign Data
+
+### Party Information
+- **Party roster**: `campaign/party/index.md`
+- **Character sheets**: `campaign/party/characters/*.md`
+- **Character by name**: Use filename (slugified name, e.g., `meilin-starwell.md`)
+
+### NPCs
+- **NPC index by role**: `campaign/npcs/index.md`
+- **Individual NPCs**: `campaign/npcs/*.md`
+- **Find NPC**: Search by name in index or use slugified filename
+
+### Locations
+- **Location index**: `campaign/locations/index.md`
+- **Individual locations**: `campaign/locations/*.md`
+
+### Sessions
+- **Session log**: `campaign/sessions/index.md`
+- **Specific session**: `campaign/sessions/session-NNN.md` (zero-padded)
+- **Latest session**: Sort by number, highest is most recent
+
+### Encounters
+- **Saved encounters**: `campaign/encounters/index.md`
+- **Individual encounters**: `campaign/encounters/*.md`
+
+## Cross-References
+
+Campaign files link to reference data using relative paths:
+
+- From `campaign/party/characters/*.md` → `../../../books/reference/...`
+- From `campaign/encounters/*.md` → `../../books/reference/...`
+
+Reference links format: `[Name](relative/path/to/reference.md)`
+
+## Campaign Management Commands
+
+```bash
+# Initialize campaign
+python scripts/campaign/init_campaign.py "Campaign Name"
+
+# Import character from D&D Beyond
+python scripts/campaign/import_character.py <url>
+
+# Build encounter
+python scripts/campaign/encounter_builder.py --level 3 --size 4 --difficulty medium
+
+# Look up rules
+python scripts/campaign/rules_engine.py --spell "fireball"
+
+# Create session
+python scripts/campaign/session_manager.py new "Session Title"
+
+# Manage NPCs/locations
+python scripts/campaign/campaign_manager.py add-npc "Name" --role ally
+python scripts/campaign/campaign_manager.py add-location "Name" --type tavern
+```
+
+## Character Sheet Format
+
+Imported character sheets follow this structure:
+
+1. **Header**: Name, Player, Species, Class, Background, Alignment
+2. **Ability Scores**: 6-column table with scores and modifiers
+3. **Combat**: AC, HP, Speed, Proficiency Bonus
+4. **Saving Throws**: Listed with proficiency indicated by bold
+5. **Skills**: Full list with proficiency/expertise marked
+6. **Languages & Tool Proficiencies**
+7. **Features & Traits**: Organized by source (species, class, feats)
+8. **Equipment**: Weapons table, armor, gear, currency
+9. **Personality**: Traits, ideals, bonds, flaws
+10. **Appearance & Notes**: Physical description, backstory, allies/enemies
+
+## Session Format
+
+Session files include:
+
+1. **Header**: Title, date, session number
+2. **Summary**: Overview of events
+3. **Key Events**: Bullet list
+4. **NPCs Encountered**: Characters met
+5. **Locations Visited**: Places explored
+6. **Loot & Rewards**: Treasure gained
+7. **Notes for Next Session**: Hooks and cliffhangers
+
+## Encounter Format
+
+Saved encounters include:
+
+1. **Header**: Name, difficulty, party info
+2. **XP Breakdown**: Base XP, multiplier, adjusted XP
+3. **Party Thresholds**: Reference for difficulty bands
+4. **Creatures Table**: Name, CR, XP, count, total XP
