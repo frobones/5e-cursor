@@ -8,6 +8,8 @@ Import characters from D&D Beyond, build balanced encounters, look up rules with
 
 [Cursor](https://cursor.com) is a free code editor with built-in AI that can read your files and run commands for you. You don't need to be a developer to use this project—once set up, you just chat with the AI in plain English to manage your campaign. The AI handles all the technical details behind the scenes.
 
+New to the project? Start with the [Introduction](docs/introduction.md) for a friendly overview.
+
 ## Quick Start
 
 ```bash
