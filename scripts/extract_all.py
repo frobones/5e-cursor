@@ -10,6 +10,7 @@ Usage:
     python scripts/extract_all.py
 """
 
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -83,6 +84,13 @@ EXTRACTIONS = [
         "source": DATA_DIR / "adventure" / "adventure-sja.json",
         "output": BOOKS_DIR / "spelljammer" / "adventures" / "sja",
     },
+    # Eberron (for Artificer class, species, and magic items only)
+    {
+        "name": "Eberron: Forge of the Artificer (Selected)",
+        "source": DATA_DIR / "book" / "book-efa.json",
+        "output": BOOKS_DIR / "eberron" / "efa",
+        "chapters": [0, 1, 2, 8],  # Intro, Artificer, Character Options, Magic Items Appendix
+    },
 ]
 
 # Master index content
@@ -101,6 +109,7 @@ This directory contains extracted D&D 5th Edition content organized for a **Spel
 | Boo's Astral Menagerie | BAM | Spelljammer | [spelljammer/bam/](spelljammer/bam/) |
 | Light of Xaryxis | LoX | Adventure | [spelljammer/adventures/lox/](spelljammer/adventures/lox/) |
 | Spelljammer Academy | SJA | Adventure | [spelljammer/adventures/sja/](spelljammer/adventures/sja/) |
+| Eberron: Forge of the Artificer | EFA | Supplement | [eberron/efa/](eberron/efa/) |
 
 ---
 
@@ -211,6 +220,23 @@ Introductory adventure series for new spelljammers. Designed for levels 1-4.
 
 ---
 
+## Eberron Supplement
+
+### Eberron: Forge of the Artificer (EFA)
+
+Selected content from Eberron for use with the Spelljammer campaign. Includes the Artificer class, Eberron species, and magic items.
+
+**Note:** Only selected chapters are extracted (Artificer, Character Options, Magic Items). Dragonmark content is excluded.
+
+| Chapter | File |
+| ------- | ---- |
+| Introduction | [00-introduction.md](eberron/efa/00-introduction.md) |
+| Chapter 1: Artificer | [01-chapter-01-artificer.md](eberron/efa/01-chapter-01-artificer.md) |
+| Chapter 2: Character Options | [02-chapter-02-character-options.md](eberron/efa/02-chapter-02-character-options.md) |
+| Appendix: Magic Items | [08-appendix-magic-items.md](eberron/efa/08-appendix-magic-items.md) |
+
+---
+
 ## Campaign Quick Links
 
 ### For Players
@@ -218,6 +244,7 @@ Introductory adventure series for new spelljammers. Designed for levels 1-4.
 - **Character Creation**: [XPHB Chapter 2](core/xphb/02-chapter-2-creating-a-character.md)
 - **Spelljammer Backgrounds**: [AAG Chapter 1](spelljammer/aag/01-chapter-1-character-options.md)
 - **Classes**: [XPHB Chapter 3](core/xphb/03-chapter-3-character-classes.md)
+- **Artificer Class**: [EFA Chapter 1](eberron/efa/01-chapter-01-artificer.md)
 - **Species/Origins**: [XPHB Chapter 4](core/xphb/04-chapter-4-character-origins.md)
 - **Spells**: [XPHB Chapter 7](core/xphb/07-chapter-7-spells.md)
 - **Equipment**: [XPHB Chapter 6](core/xphb/06-chapter-6-equipment.md)
@@ -314,13 +341,24 @@ def check_submodule():
         sys.exit(1)
 
 
-def extract_book(name: str, source: Path, output: Path):
-    """Extract a single book using extract_book.py."""
+def extract_book(name: str, source: Path, output: Path, chapters: list = None):
+    """Extract a single book using extract_book.py.
+
+    Args:
+        name: Display name for the book
+        source: Path to the source JSON file
+        output: Path to output directory
+        chapters: Optional list of chapter indices to extract (0-based). If None, extract all.
+    """
     if not source.exists():
         print(f"  Warning: Source not found: {source}")
         return False
 
     output.mkdir(parents=True, exist_ok=True)
+
+    if chapters is not None:
+        # Use chapter filtering - extract directly here
+        return _extract_book_with_chapters(name, source, output, chapters)
 
     result = subprocess.run(
         [sys.executable, str(EXTRACT_SCRIPT), str(source), str(output)],
@@ -334,6 +372,82 @@ def extract_book(name: str, source: Path, output: Path):
         return False
 
     return True
+
+
+def _extract_book_with_chapters(name: str, source: Path, output: Path, chapters: list) -> bool:
+    """Extract specific chapters from a book.
+
+    Args:
+        name: Display name for the book
+        source: Path to the source JSON file
+        output: Path to output directory
+        chapters: List of chapter indices to extract (0-based)
+    """
+    # Import here to avoid circular imports
+    from extract_book import BookExtractor, EntryConverter, TagConverter
+
+    try:
+        with open(source, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        sections = data.get('data', [])
+        if not sections:
+            print(f"  Warning: No data sections found in {source}")
+            return False
+
+        output.mkdir(parents=True, exist_ok=True)
+        converter = EntryConverter(heading_level=1)
+        chapter_set = set(chapters)
+
+        extracted_count = 0
+        for idx, section in enumerate(sections):
+            if idx not in chapter_set:
+                continue
+
+            if not isinstance(section, dict):
+                continue
+
+            section_name = section.get('name', f'Section {idx}')
+            safe_name = _make_safe_filename(section_name)
+            filename = f"{idx:02d}-{safe_name}.md"
+
+            # Build content
+            parts = []
+            page = section.get('page', '')
+
+            if section_name:
+                parts.append(f"# {TagConverter.convert_tags(section_name)}")
+                if page:
+                    parts.append(f"*Page {page}*")
+                parts.append("")
+
+            entries = section.get('entries', [])
+            content = converter.convert(entries, 0)
+            if content:
+                parts.append(content)
+
+            output_path = output / filename
+            with open(output_path, 'w', encoding='utf-8') as f:
+                f.write("\n".join(parts))
+
+            print(f"    Created: {filename}")
+            extracted_count += 1
+
+        print(f"    Extracted {extracted_count} of {len(sections)} chapters (filtered)")
+        return True
+
+    except Exception as e:
+        print(f"  Error extracting {name}: {e}")
+        return False
+
+
+def _make_safe_filename(name: str) -> str:
+    """Convert a name to a safe filename."""
+    import re
+    safe = name.lower()
+    safe = re.sub(r'[^\w\s-]', '', safe)
+    safe = re.sub(r'[-\s]+', '-', safe)
+    return safe.strip('-')[:50]
 
 
 def create_readme():
@@ -415,8 +529,8 @@ def extract_items():
     print("Extracting magic items...")
     items_dir = REFERENCE_DIR / "items"
 
-    # Filter to only our target sources
-    sources = ['XDMG', 'XPHB', 'AAG', 'DMG']
+    # Filter to only our target sources (includes EFA for Artificer magic items)
+    sources = ['XDMG', 'XPHB', 'AAG', 'DMG', 'EFA']
     extractor = ItemExtractor(str(items_dir), sources=sources)
 
     items_file = DATA_DIR / "items.json"
@@ -490,7 +604,7 @@ def extract_classes():
 
     extractor = ClassExtractor(str(classes_dir), source='XPHB')
 
-    # Process each class file
+    # Process each XPHB class file
     class_dir = DATA_DIR / "class"
     class_files = [
         'class-barbarian.json',
@@ -513,6 +627,18 @@ def extract_classes():
         if class_path.exists():
             count = extractor.extract_file(str(class_path))
             total += count
+
+    print(f"  XPHB: {total} classes")
+
+    # Extract Artificer from EFA (Eberron: Forge of the Artificer)
+    efa_extractor = ClassExtractor(str(classes_dir), source='EFA')
+    artificer_file = class_dir / 'class-artificer.json'
+    if artificer_file.exists():
+        efa_count = efa_extractor.extract_file(str(artificer_file))
+        print(f"  EFA: {efa_count} classes (Artificer)")
+        total += efa_count
+        # Merge index entries
+        extractor.index_entries.extend(efa_extractor.index_entries)
 
     print(f"  Total: {total} classes")
 
@@ -856,9 +982,10 @@ def main():
         name = extraction["name"]
         source = extraction["source"]
         output = extraction["output"]
+        chapters = extraction.get("chapters")  # Optional chapter filter
 
         print(f"  {name}...")
-        if extract_book(name, source, output):
+        if extract_book(name, source, output, chapters=chapters):
             print(f"    -> {output.relative_to(REPO_ROOT)}/")
 
     print()

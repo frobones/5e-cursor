@@ -13,7 +13,7 @@ from extractors.base import make_safe_filename
 
 
 # Sources to include
-ALLOWED_SOURCES = {'XPHB', 'XDMG', 'XMM', 'AAG', 'BAM'}
+ALLOWED_SOURCES = {'XPHB', 'XDMG', 'XMM', 'AAG', 'BAM', 'EFA'}
 
 # Size codes
 SIZE_MAP = {
