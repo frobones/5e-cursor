@@ -50,12 +50,8 @@ Sources are fully configurable via `sources.yaml`—use presets like `2024-core`
 
 ## Learn More
 
-See the [README](../README.md) for full documentation, including:
-
-- Source book configuration
-- Campaign initialization
-- CLI reference
-- Project structure
+- **[User Guide](00-guide.md)** – Detailed docs: getting started, campaign setup, using the AI, Web UI, reference data, CLI reference, and optional tools (loot, transcription, timeline, relationships).
+- **[README](../README.md)** – Quick start, source book configuration, project structure, and high-level feature list.
 
 ## Acknowledgments
 

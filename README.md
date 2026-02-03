@@ -8,7 +8,7 @@ Import characters from D&D Beyond, build balanced encounters, look up rules with
 
 [Cursor](https://cursor.com) is a free code editor with built-in AI that can read your files and run commands for you. You don't need to be a developer to use this project—once set up, you just chat with the AI in plain English to manage your campaign. The AI handles all the technical details behind the scenes.
 
-New to the project? Start with the [Introduction](docs/introduction.md) for a friendly overview.
+New to the project? Start with the [Introduction](docs/01-introduction.md) for a friendly overview. For thorough usage instructions, see the [User Guide](docs/00-guide.md) (getting started, campaign setup, AI workflows, Web UI, CLI reference, and optional tools).
 
 ## Quick Start
 
@@ -121,6 +121,12 @@ See `books/README.md` for the complete list after extraction.
 │   ├── locations/            # Campaign locations
 │   ├── sessions/             # Session summaries
 │   └── encounters/           # Saved encounters
+├── frontend/                 # Campaign Web UI (React + Vite)
+│   ├── src/
+│   │   ├── pages/            # Dashboard, NPCs, Sessions, etc.
+│   │   ├── components/       # Layout, markdown viewer, search
+│   │   └── services/         # API client
+│   └── package.json
 ├── scripts/
 │   ├── extract_all.py        # Reference data extraction
 │   ├── extractors/           # Category extractors
@@ -129,7 +135,16 @@ See `books/README.md` for the complete list after extraction.
 │   │   ├── encounter_builder.py
 │   │   ├── rules_engine.py
 │   │   ├── session_manager.py
-│   │   └── campaign_manager.py
+│   │   ├── campaign_manager.py
+│   │   ├── loot_generator.py
+│   │   ├── transcribe_session.py
+│   │   ├── timeline_generator.py
+│   │   └── relationship_graph.py
+│   ├── web/                  # Web UI backend (FastAPI)
+│   │   ├── main.py           # API server entry point
+│   │   ├── api/              # Route handlers
+│   │   ├── services/         # Campaign & reference data access
+│   │   └── models/           # Pydantic request/response models
 │   └── lib/                  # Shared utilities
 ├── .cursor/rules/            # Cursor AI rules
 ├── Makefile                  # Build commands
@@ -144,6 +159,10 @@ See `books/README.md` for the complete list after extraction.
 | `make extract` | Run extraction only |
 | `make submodule` | Initialize/update submodule only |
 | `make clean` | Remove extracted books/ |
+| `make web-ui` | Start Web UI (frontend + backend) |
+| `make web-ui-stop` | Stop Web UI servers |
+| `make demo-campaign` | Extract demo campaign for testing |
+| `make demo-campaign-clean` | Remove demo campaign |
 | `make help` | Show available commands |
 
 ## Cursor Integration
@@ -278,6 +297,54 @@ python scripts/campaign/campaign_manager.py list-locations
 # AI support (context gathering)
 python scripts/campaign/campaign_manager.py context           # Campaign summary
 python scripts/campaign/campaign_manager.py check-name "Name" # Validate availability
+```
+
+## Web UI
+
+Browse your campaign in a modern web interface with all your data at your fingertips.
+
+### Starting the Web UI
+
+```bash
+# Terminal 1: Start the backend API
+cd scripts && python -m web.main
+
+# Terminal 2: Start the frontend dev server
+cd frontend && npm run dev
+```
+
+Then open http://localhost:5173 in your browser.
+
+### Features
+
+| Feature | Description |
+| ------- | ----------- |
+| **Dashboard** | Campaign overview with stats, recent sessions, and quick links |
+| **NPC Browser** | Browse all NPCs with role filtering and relationship connections |
+| **Location Browser** | Explore campaign locations with descriptions and notable features |
+| **Session History** | Review all sessions with full markdown rendering |
+| **Party Tracker** | View party composition and individual character sheets |
+| **Encounter Library** | Saved encounters with difficulty ratings and creature lists |
+| **Encounter Builder** | Build balanced encounters with real-time difficulty calculation |
+| **Combat Tracker** | Run encounters with initiative, HP, conditions, and stat lookups |
+| **Campaign Timeline** | Chronological view of all events, NPC appearances, and discoveries |
+| **Relationship Graph** | Interactive Mermaid diagram showing NPC connections |
+| **Reference Browser** | Search spells, creatures, items with level/CR/rarity filters |
+| **Global Search** | Press Cmd+K to search across all campaign content |
+| **Live Reload** | Auto-refreshes when campaign files change |
+
+### Development
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+cd frontend && npm install
+
+# Run linting
+cd frontend && npm run lint
+
+# Build for production
+cd frontend && npm run build
 ```
 
 ## License
