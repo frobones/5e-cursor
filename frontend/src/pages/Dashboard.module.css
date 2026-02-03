@@ -1,0 +1,185 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.header {
+  text-align: center;
+  padding: var(--spacing-xl) 0;
+}
+
+.header h1 {
+  margin-bottom: var(--spacing-sm);
+}
+
+.setting {
+  @apply text-ink-500 text-lg;
+}
+
+:global(.dark) .setting {
+  @apply text-parchment-400;
+}
+
+.loading,
+.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  text-align: center;
+}
+
+.error h2 {
+  margin-bottom: var(--spacing-md);
+}
+
+.error pre {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-md);
+  border-radius: 0.5rem;
+  @apply bg-ink-900 text-parchment-100;
+}
+
+.statsSection h2,
+.sessionsSection h2 {
+  margin-bottom: var(--spacing-md);
+  @apply text-xl font-display;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  border-radius: 0.75rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: box-shadow var(--transition-fast), transform var(--transition-fast),
+    border-color var(--transition-fast);
+  @apply bg-white border border-parchment-200;
+}
+
+.stat:hover {
+  @apply border-parchment-400 shadow-md;
+  transform: translateY(-2px);
+}
+
+.stat:focus-visible {
+  outline: none;
+  @apply ring-2 ring-parchment-500 ring-offset-2;
+}
+
+:global(.dark) .stat {
+  @apply bg-ink-800 border-ink-700;
+}
+
+:global(.dark) .stat:hover {
+  @apply border-ink-500;
+}
+
+:global(.dark) .stat:focus-visible {
+  @apply ring-parchment-400 ring-offset-ink-900;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  @apply text-ink-900;
+}
+
+:global(.dark) .statValue {
+  @apply text-parchment-100;
+}
+
+.statLabel {
+  @apply text-ink-500;
+}
+
+:global(.dark) .statLabel {
+  @apply text-parchment-400;
+}
+
+.sessionsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.sessionCard {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  border-radius: 0.5rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast),
+    background-color var(--transition-fast);
+  @apply bg-white border border-parchment-200;
+}
+
+:global(.dark) .sessionCard {
+  @apply bg-ink-800 border-ink-700;
+}
+
+.sessionCard:hover {
+  @apply border-parchment-400 bg-parchment-50 shadow-sm;
+}
+
+:global(.dark) .sessionCard:hover {
+  @apply border-ink-500 bg-ink-700;
+}
+
+.sessionCard:focus-visible {
+  outline: none;
+  @apply ring-2 ring-parchment-500 ring-offset-2;
+}
+
+:global(.dark) .sessionCard:focus-visible {
+  @apply ring-parchment-400 ring-offset-ink-900;
+}
+
+.sessionNumber {
+  font-weight: 600;
+  white-space: nowrap;
+  @apply text-parchment-700;
+}
+
+:global(.dark) .sessionNumber {
+  @apply text-parchment-400;
+}
+
+.sessionTitle {
+  flex: 1;
+  @apply text-ink-900;
+}
+
+:global(.dark) .sessionTitle {
+  @apply text-parchment-100;
+}
+
+.sessionMeta {
+  display: flex;
+  gap: var(--spacing-md);
+  @apply text-sm text-ink-500;
+}
+
+:global(.dark) .sessionMeta {
+  @apply text-parchment-400;
+}
+
+.inGameDate {
+  @apply text-parchment-600;
+}
+
+:global(.dark) .inGameDate {
+  @apply text-parchment-500;
+}

@@ -1,0 +1,197 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* CSS Custom Properties for layout */
+:root {
+  --sidebar-width: 16rem;
+  --sidebar-collapsed-width: 4rem;
+  --header-height: 4rem;
+  --content-max-width: 80rem;
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --transition-fast: 150ms ease;
+  --transition-normal: 200ms ease;
+}
+
+@layer base {
+  html {
+    @apply antialiased;
+  }
+  
+  body {
+    @apply bg-parchment-50 text-ink-900 font-body;
+  }
+  
+  .dark body {
+    @apply bg-ink-900 text-parchment-100;
+  }
+  
+  /* Typography */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-semibold text-ink-900;
+  }
+  
+  .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+    @apply text-parchment-100;
+  }
+  
+  h1 { @apply text-3xl md:text-4xl; }
+  h2 { @apply text-2xl md:text-3xl; }
+  h3 { @apply text-xl md:text-2xl; }
+  h4 { @apply text-lg md:text-xl; }
+  
+  a {
+    @apply text-parchment-700 hover:text-parchment-800 underline-offset-2 cursor-pointer;
+  }
+  
+  .dark a {
+    @apply text-parchment-400 hover:text-parchment-300;
+  }
+  
+  /* Scrollbar */
+  ::-webkit-scrollbar { @apply w-2; }
+  ::-webkit-scrollbar-track { @apply bg-parchment-100; }
+  .dark ::-webkit-scrollbar-track { @apply bg-ink-800; }
+  ::-webkit-scrollbar-thumb { @apply bg-parchment-400 rounded-full; }
+  .dark ::-webkit-scrollbar-thumb { @apply bg-ink-600; }
+}
+
+@layer components {
+  /* Card component */
+  .card {
+    @apply bg-white rounded-lg shadow-sm border border-parchment-200 p-4 transition-shadow hover:shadow-md;
+  }
+  
+  .dark .card {
+    @apply bg-ink-800 border-ink-700;
+  }
+
+  /* Clickable card (e.g. list items that link to detail pages) */
+  .card-link {
+    @apply cursor-pointer transition-all duration-150;
+    @apply hover:shadow-md hover:border-parchment-400 hover:-translate-y-0.5;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-parchment-500 focus-visible:ring-offset-2;
+  }
+  .dark .card-link {
+    @apply hover:border-ink-500;
+    @apply focus-visible:ring-parchment-400 focus-visible:ring-offset-ink-900;
+  }
+  
+  /* Badge variants */
+  .badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
+  }
+  
+  .badge-ally {
+    @apply bg-green-100 text-green-800;
+  }
+  .dark .badge-ally {
+    @apply bg-green-900/30 text-green-400;
+  }
+  
+  .badge-neutral {
+    @apply bg-indigo-100 text-indigo-800;
+  }
+  .dark .badge-neutral {
+    @apply bg-indigo-900/30 text-indigo-400;
+  }
+  
+  .badge-enemy {
+    @apply bg-red-100 text-red-800;
+  }
+  .dark .badge-enemy {
+    @apply bg-red-900/30 text-red-400;
+  }
+  
+  /* Button variants */
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+  
+  .btn-primary {
+    @apply bg-parchment-600 text-white hover:bg-parchment-700 focus:ring-parchment-500;
+  }
+  
+  .btn-secondary {
+    @apply bg-parchment-100 text-ink-700 hover:bg-parchment-200 focus:ring-parchment-400;
+  }
+  .dark .btn-secondary {
+    @apply bg-ink-700 text-parchment-100 hover:bg-ink-600;
+  }
+  
+  /* Prose/markdown content */
+  .prose {
+    @apply text-ink-700;
+  }
+  .dark .prose {
+    @apply text-parchment-200;
+  }
+  
+  .prose h1, .prose h2, .prose h3, .prose h4 {
+    @apply mt-8 mb-4 first:mt-0;
+  }
+  
+  .prose p { @apply mb-4 leading-relaxed; }
+  .prose ul, .prose ol { @apply mb-4 pl-6; }
+  .prose ul { @apply list-disc; }
+  .prose ol { @apply list-decimal; }
+  .prose li { @apply mb-1; }
+  
+  .prose blockquote {
+    @apply border-l-4 border-parchment-400 pl-4 italic text-ink-600;
+  }
+  .dark .prose blockquote {
+    @apply border-ink-600 text-parchment-400;
+  }
+  
+  .prose code {
+    @apply bg-parchment-100 px-1 py-0.5 rounded text-sm font-mono;
+  }
+  .dark .prose code {
+    @apply bg-ink-800;
+  }
+  
+  .prose pre {
+    @apply bg-ink-900 text-parchment-100 p-4 rounded-lg overflow-x-auto mb-4;
+  }
+  .prose pre code { @apply bg-transparent p-0; }
+  
+  .prose table { @apply w-full border-collapse mb-4; }
+  .prose th, .prose td {
+    @apply border border-parchment-300 px-3 py-2 text-left;
+  }
+  .dark .prose th, .dark .prose td {
+    @apply border-ink-600;
+  }
+  .prose th {
+    @apply bg-parchment-100 font-semibold;
+  }
+  .dark .prose th {
+    @apply bg-ink-800;
+  }
+  
+  .prose hr { @apply my-8 border-parchment-300; }
+  .dark .prose hr { @apply border-ink-600; }
+  
+  .prose strong {
+    @apply font-semibold text-ink-900;
+  }
+  .dark .prose strong {
+    @apply text-parchment-100;
+  }
+
+  /* Prose links: obviously clickable */
+  .prose a {
+    @apply text-parchment-700 underline decoration-parchment-400 underline-offset-2;
+    @apply hover:text-parchment-900 hover:decoration-parchment-600;
+    @apply cursor-pointer;
+  }
+  .dark .prose a {
+    @apply text-parchment-400 decoration-parchment-600;
+    @apply hover:text-parchment-200 hover:decoration-parchment-400;
+  }
+}
