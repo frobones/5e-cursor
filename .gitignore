@@ -28,3 +28,6 @@ Thumbs.db
 # Temp files
 temp/
 *.tmp
+
+# Web UI dev server PIDs (make web-ui)
+.web-ui.pids
