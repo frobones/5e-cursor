@@ -16,6 +16,9 @@ Campaign data is stored in `campaign/` with the following structure:
 ```
 campaign/
 ├── campaign.md          # Campaign overview and metadata
+├── timeline.md          # Generated chronological timeline
+├── events.md            # Custom campaign events for timeline
+├── relationships.md     # Generated NPC relationship graph
 ├── party/
 │   ├── index.md         # Party roster with average level, size
 │   └── characters/      # Imported character sheets (*.md)
@@ -27,7 +30,8 @@ campaign/
 │   └── *.md             # Individual location files
 ├── sessions/
 │   ├── index.md         # Chronological session log
-│   └── session-*.md     # Session summaries (session-001.md, etc.)
+│   ├── session-*.md     # Session summaries (session-001.md, etc.)
+│   └── transcripts/     # Raw audio transcripts (session-001.txt, etc.)
 └── encounters/
     ├── index.md         # Saved encounter index
     └── *.md             # Individual encounter files
@@ -82,12 +86,67 @@ python scripts/campaign/encounter_builder.py --level 3 --size 4 --difficulty med
 # Look up rules
 python scripts/campaign/rules_engine.py --spell "fireball"
 
-# Create session
+# Create session (with optional in-game date)
 python scripts/campaign/session_manager.py new "Session Title"
+python scripts/campaign/session_manager.py new "Cave Exploration" --in-game-date "Day 15"
 
-# Manage NPCs/locations
+# Manage NPCs/locations (with optional first appearance dates)
 python scripts/campaign/campaign_manager.py add-npc "Name" --role ally
+python scripts/campaign/campaign_manager.py add-npc "Grimbold" --role neutral --first-seen "Day 5"
 python scripts/campaign/campaign_manager.py add-location "Name" --type tavern
+python scripts/campaign/campaign_manager.py add-location "Goblin Caves" --type dungeon --discovered "Day 10"
+
+# Generate loot/treasure
+python scripts/campaign/loot_generator.py individual --cr 3
+python scripts/campaign/loot_generator.py hoard --cr 7
+python scripts/campaign/loot_generator.py magic-item --table C
+python scripts/campaign/loot_generator.py for-encounter "goblin-ambush"
+python scripts/campaign/loot_generator.py hoard --cr 5 --add-to-session 3
+
+# Transcribe session audio
+python scripts/campaign/transcribe_session.py "recording.mp3" --title "Session Title"
+python scripts/campaign/transcribe_session.py recording.mp3 --model medium
+python scripts/campaign/transcribe_session.py recording.mp3 --title "Boss Fight" --number 5
+
+# Analyze session transcript (Cursor command)
+# Open a session file with transcript, then run: /analyze-session
+
+# Generate campaign timeline
+python scripts/campaign/timeline_generator.py
+python scripts/campaign/timeline_generator.py --output custom-timeline.md
+
+# Add NPC relationships
+python scripts/campaign/campaign_manager.py add-relationship "NPC A" "NPC B" --type ally
+python scripts/campaign/campaign_manager.py add-relationship "Elara" "Grimbold" --type mentor --description "Trained her in magic"
+
+# Generate relationship graph
+python scripts/campaign/relationship_graph.py
+```
+
+## Cursor Commands
+
+### /analyze-session
+
+Analyzes a session transcript and populates structured sections automatically.
+
+**Usage**: Open a session file (session-NNN.md) in Cursor, then run `/analyze-session`
+
+**What it does**:
+1. Reads the Transcript section from the current session file
+2. Checks campaign data for existing NPCs and locations
+3. Fills in: Summary, Key Events, NPCs Encountered, Locations Visited, Loot & Rewards, Notes for Next Session
+4. Links to existing entities or marks new ones with (NEW)
+
+**Workflow**:
+```bash
+# 1. Transcribe audio
+python scripts/campaign/transcribe_session.py "recording.mp3" --title "Session Title"
+
+# 2. Open the session file in Cursor
+# 3. Run /analyze-session command
+# 4. Review and edit the generated content
+# 5. Create any NEW entities
+python scripts/campaign/campaign_manager.py add-npc "New NPC Name" --role neutral
 ```
 
 ## Character Sheet Format
@@ -116,6 +175,18 @@ Session files include:
 5. **Locations Visited**: Places explored
 6. **Loot & Rewards**: Treasure gained
 7. **Notes for Next Session**: Hooks and cliffhangers
+8. **Transcript** (optional): Full audio transcript for AI analysis
+
+### Transcribed Sessions
+
+Sessions created from audio transcription include additional metadata:
+- **Audio Source**: Original audio filename
+- **Transcription Model**: Whisper model used (tiny/base/small/medium/large)
+- **Transcript section**: Full transcript text for AI analysis
+
+Raw transcripts are also saved separately in `campaign/sessions/transcripts/session-NNN.txt`
+
+**Analyzing transcripts**: After transcription, run `/analyze-session` in Cursor to auto-populate all session sections from the transcript.
 
 ## Encounter Format
 
@@ -125,3 +196,152 @@ Saved encounters include:
 2. **XP Breakdown**: Base XP, multiplier, adjusted XP
 3. **Party Thresholds**: Reference for difficulty bands
 4. **Creatures Table**: Name, CR, XP, count, total XP
+
+## Campaign Timeline
+
+Track the passage of in-game time and generate a chronological timeline of your campaign.
+
+### In-Game Date Tracking
+
+The timeline uses simple day counting (Day 1, Day 2, etc.) for in-game time tracking.
+
+**Sessions**: Add `--in-game-date "Day N"` when creating sessions
+```bash
+python scripts/campaign/session_manager.py new "Into the Caves" --in-game-date "Day 5"
+```
+
+**NPCs**: Add `--first-seen "Day N"` when the party first meets an NPC
+```bash
+python scripts/campaign/campaign_manager.py add-npc "Grimbold" --first-seen "Day 5"
+```
+
+**Locations**: Add `--discovered "Day N"` when the party discovers a location
+```bash
+python scripts/campaign/campaign_manager.py add-location "Goblin Caves" --discovered "Day 5"
+```
+
+### Custom Events
+
+Add major campaign events to `campaign/events.md`:
+
+| In-Game Date | Event | Session | Category |
+| ------------ | ----- | ------- | -------- |
+| Day 1 | Campaign begins | 1 | start |
+| Day 5 | Defeated goblin chief | 2 | battle |
+
+**Categories**: `start`, `battle`, `plot`, `discovery`, `custom`
+
+### Generating the Timeline
+
+```bash
+python scripts/campaign/timeline_generator.py
+```
+
+This collects events from:
+- Sessions with in-game dates
+- NPC first appearances
+- Location discoveries
+- Custom events from events.md
+
+Output: `campaign/timeline.md`
+
+## NPC Relationships
+
+Track connections between NPCs and generate a visual relationship graph.
+
+### Relationship Format
+
+In NPC files, the `## Connections` section uses structured format:
+
+```markdown
+## Connections
+
+- [Grimbold](grimbold.md) | ally | Childhood friend
+- [Mayor Thorne](mayor-thorne.md) | employer | Works as enforcer
+- The Shadow Guild | enemy | Hunted for past crimes
+```
+
+**Format**: `- [Name](file.md) | type | description`
+
+### Relationship Types
+
+| Type | Inverse | Description |
+|------|---------|-------------|
+| ally | ally | Friendly, cooperative |
+| enemy | enemy | Hostile, adversarial |
+| family | family | Blood or marriage |
+| employer | employee | Works for this person |
+| employee | employer | This person works for them |
+| rival | rival | Competitive relationship |
+| neutral | neutral | Knows but no strong feelings |
+| romantic | romantic | Love interest |
+| mentor | student | Teacher/learner relationship |
+
+### Adding Relationships
+
+```bash
+# Add bidirectional relationship (both NPCs updated)
+python scripts/campaign/campaign_manager.py add-relationship "Elara" "Grimbold" --type ally --description "Old friends"
+
+# Add one-way relationship
+python scripts/campaign/campaign_manager.py add-relationship "Spy" "Target" --type enemy --one-way
+```
+
+### Generating the Graph
+
+```bash
+python scripts/campaign/relationship_graph.py
+```
+
+Output: `campaign/relationships.md` with Mermaid diagram
+
+## Web UI
+
+Browse your campaign in a web browser with the Campaign Web UI.
+
+### Starting the Web UI
+
+```bash
+# Terminal 1: Start the backend API (from project root)
+cd scripts && python -m web.main
+
+# Terminal 2: Start the frontend dev server
+cd frontend && npm run dev
+```
+
+Open http://localhost:5173 in your browser.
+
+### Web UI Features
+
+| Feature | Access |
+|---------|--------|
+| Dashboard | `/` - Campaign overview and stats |
+| NPCs | `/npcs` - Browse with role filtering |
+| Locations | `/locations` - Explore all locations |
+| Sessions | `/sessions` - Session history |
+| Party | `/party` - Character sheets |
+| Encounters | `/encounters` - Saved encounters |
+| Timeline | `/timeline` - Chronological events |
+| Relationships | `/relationships` - NPC connection graph |
+| Reference | `/reference` - Spells, creatures, items |
+| Global Search | `Cmd+K` - Search all content |
+| Live Reload | Auto-refreshes on file changes |
+
+### API Endpoints
+
+The backend provides read-only REST API:
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/campaign` | Campaign overview |
+| `GET /api/npcs` | List all NPCs |
+| `GET /api/npcs/{slug}` | NPC detail |
+| `GET /api/locations` | List all locations |
+| `GET /api/sessions` | List all sessions |
+| `GET /api/party` | Party composition |
+| `GET /api/encounters` | List encounters |
+| `GET /api/timeline` | Timeline events |
+| `GET /api/relationships` | NPC relationship graph |
+| `GET /api/reference/{type}` | Reference entries by type |
+| `GET /api/search?q={query}` | Full-text search |
+| `WS /ws` | WebSocket for live file change notifications |
