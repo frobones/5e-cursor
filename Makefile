@@ -5,7 +5,7 @@ PYTHON := $(shell [ -f .venv/bin/python ] && echo ".venv/bin/python" || echo "py
 
 # ---- Setup ----
 
-.PHONY: all install extract clean campaign-init demo-campaign demo-campaign-clean web-ui web-ui-stop help
+.PHONY: all install extract clean campaign-init demo-campaign demo-campaign-clean frontend-install web-ui web-ui-stop help
 
 all: install submodule extract
 	@echo ""
@@ -67,7 +67,13 @@ demo-campaign-clean:
 
 # ---- Web UI ----
 
-web-ui:
+frontend-install:
+	@if [ ! -d frontend/node_modules ]; then \
+		echo "Installing frontend dependencies..."; \
+		cd frontend && npm install; \
+	fi
+
+web-ui: frontend-install
 	@rm -f .web-ui.pids
 	@mkdir -p logs
 	@PYTHONPATH=scripts $(PYTHON) -m web.main >> logs/backend.log 2>&1 & \

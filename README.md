@@ -26,6 +26,17 @@ New to the project? Start with the [Introduction](docs/01-introduction.md) for a
 
 That's it. `make` initializes the submodule and extracts all reference data.
 
+### Try It Out
+
+Want to see the tool in action right away? Load the demo campaign and launch the Web UI:
+
+```bash
+make demo-campaign   # Extract the included demo campaign
+make web-ui          # Install frontend deps (first time) and start the Web UI
+```
+
+Open http://localhost:5173 to browse the demo campaign—explore NPCs, locations, sessions, encounters, and reference data. When you're done, stop the servers with `make web-ui-stop` and clean up with `make demo-campaign-clean`.
+
 ## What It Does
 
 Extracts D&D 5e (2024) content from the 5etools data repository and converts it to:
