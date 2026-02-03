@@ -672,6 +672,16 @@ class DeckExtractor:
 class SkillExtractor:
     """Extracts skills to individual markdown files."""
 
+    # Ability abbreviation to full name mapping
+    ABILITY_NAMES = {
+        'str': 'Strength',
+        'dex': 'Dexterity',
+        'con': 'Constitution',
+        'int': 'Intelligence',
+        'wis': 'Wisdom',
+        'cha': 'Charisma',
+    }
+
     def __init__(self, output_dir: str, sources: Optional[list] = None):
         self.output_dir = Path(output_dir)
         self.sources = set(s.upper() for s in sources) if sources else ALLOWED_SOURCES
@@ -706,9 +716,11 @@ class SkillExtractor:
         parts.append(f"# {name}")
         parts.append("")
 
-        ability = skill.get('ability', [])
+        ability = skill.get('ability', '')
         if ability:
-            parts.append(f"*{', '.join(ability).upper()} Skill*")
+            # Convert abbreviation to full name (e.g., 'int' -> 'Intelligence')
+            ability_name = self.ABILITY_NAMES.get(ability.lower(), ability.upper())
+            parts.append(f"*{ability_name} Skill*")
         else:
             parts.append("*Skill*")
         parts.append("")
@@ -736,7 +748,7 @@ class SkillExtractor:
 
         self.index_entries.append({
             'name': name,
-            'ability': ', '.join(ability).upper() if ability else '-',
+            'ability': self.ABILITY_NAMES.get(ability.lower(), ability.upper()) if ability else '-',
             'source': source,
             'path': filename,
         })

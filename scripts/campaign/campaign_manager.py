@@ -4,12 +4,15 @@ Campaign Manager - Manage NPCs, locations, and campaign state.
 
 Usage:
     python scripts/campaign/campaign_manager.py add-npc "Elara the Wise" --role ally --description "A sage..."
+    python scripts/campaign/campaign_manager.py add-npc "Grimbold" --role neutral --first-seen "Day 5"
     python scripts/campaign/campaign_manager.py add-location "The Dragon's Rest Inn" --type tavern
+    python scripts/campaign/campaign_manager.py add-location "Goblin Caves" --type dungeon --discovered "Day 10"
     python scripts/campaign/campaign_manager.py list-npcs
     python scripts/campaign/campaign_manager.py list-locations
     python scripts/campaign/campaign_manager.py show-npc "Elara the Wise"
     python scripts/campaign/campaign_manager.py context
     python scripts/campaign/campaign_manager.py check-name "Elara"
+    python scripts/campaign/campaign_manager.py add-relationship "Elara" "Grimbold" --type ally --description "Old friends"
 """
 
 import argparse
@@ -22,7 +25,13 @@ from typing import Optional
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from lib.campaign_calendar import format_in_game_date, parse_in_game_date
 from lib.markdown_writer import bold, heading, horizontal_rule, iso_date, slugify
+from lib.relationship_parser import (
+    RELATIONSHIP_TYPES,
+    add_relationship_to_content,
+    format_relationship_line,
+)
 
 
 NPC_ROLES = ["ally", "neutral", "enemy", "unknown"]
@@ -42,6 +51,7 @@ def create_npc(
     secrets: str = "",
     combat: str = "",
     notes: str = "",
+    first_seen: str = "",
 ) -> Path:
     """Create a new NPC file.
 
@@ -57,6 +67,7 @@ def create_npc(
         secrets: Hidden information for DM reference
         combat: Combat role or stat block reference
         notes: Additional notes
+        first_seen: In-game date of first appearance
 
     Returns:
         Path to created file
@@ -66,11 +77,16 @@ def create_npc(
     filename = f"{slugify(name)}.md"
     npc_path = npcs_dir / filename
 
+    # Build first appearance line if provided
+    first_seen_line = ""
+    if first_seen:
+        first_seen_line = f"\n{bold('First Appearance')}: {first_seen}  "
+
     content = f"""{heading(name)}
 
 {bold("Role")}: {role.title()}  
 {bold("Occupation")}: {occupation or "Unknown"}  
-{bold("Location")}: {location or "Unknown"}
+{bold("Location")}: {location or "Unknown"}{first_seen_line}
 
 {horizontal_rule()}
 
@@ -86,7 +102,9 @@ def create_npc(
 
 ## Connections
 
-*List relationships with other NPCs, factions, or the party...*
+*Add relationships using: `- [Name](file.md) | type | description`*
+
+*Types: ally, enemy, family, employer, employee, rival, neutral, romantic, mentor*
 
 ## Secrets
 
@@ -122,6 +140,7 @@ def create_location(
     secrets: str = "",
     connections: Optional[list[str]] = None,
     notes: str = "",
+    discovered: str = "",
 ) -> Path:
     """Create a new location file.
 
@@ -138,6 +157,7 @@ def create_location(
         secrets: Hidden features or adventure hooks
         connections: Connected locations
         notes: Additional notes
+        discovered: In-game date when discovered
 
     Returns:
         Path to created file
@@ -153,10 +173,15 @@ def create_location(
     else:
         connections_str = "*No connections listed...*"
 
+    # Build discovered line if provided
+    discovered_line = ""
+    if discovered:
+        discovered_line = f"\n{bold('Discovered')}: {discovered}  "
+
     content = f"""{heading(name)}
 
 {bold("Type")}: {location_type.title()}  
-{bold("Region")}: {region or "Unknown"}
+{bold("Region")}: {region or "Unknown"}{discovered_line}
 
 {horizontal_rule()}
 
@@ -345,6 +370,41 @@ def list_npcs(npcs_dir: Path) -> list[dict]:
         })
 
     return npcs
+
+
+def find_npc_by_name(npcs_dir: Path, name: str) -> Optional[Path]:
+    """Find an NPC file by name.
+
+    Searches for NPCs by matching the name in the heading or the slug.
+
+    Args:
+        npcs_dir: Path to NPCs directory
+        name: NPC name to search for
+
+    Returns:
+        Path to NPC file if found, None otherwise
+    """
+    if not npcs_dir.exists():
+        return None
+
+    # First, try exact slug match
+    slug = slugify(name)
+    slug_path = npcs_dir / f"{slug}.md"
+    if slug_path.exists():
+        return slug_path
+
+    # Then, search by name in heading
+    name_lower = name.lower()
+    for npc_file in npcs_dir.glob("*.md"):
+        if npc_file.name == "index.md":
+            continue
+
+        content = npc_file.read_text(encoding="utf-8")
+        name_match = re.search(r"^# (.+)$", content, re.MULTILINE)
+        if name_match and name_match.group(1).lower() == name_lower:
+            return npc_file
+
+    return None
 
 
 def list_locations(locations_dir: Path) -> list[dict]:
@@ -677,6 +737,7 @@ Examples:
     add_npc_parser.add_argument("--secrets", "-s", default="", help="Hidden information for DM")
     add_npc_parser.add_argument("--combat", "-c", default="", help="Combat role or stat block reference")
     add_npc_parser.add_argument("--notes", "-n", default="", help="Additional notes")
+    add_npc_parser.add_argument("--first-seen", default="", help="In-game date of first appearance (e.g., 'Day 12')")
 
     # add-location command
     add_loc_parser = subparsers.add_parser("add-location", help="Add a new location")
@@ -690,6 +751,7 @@ Examples:
     add_loc_parser.add_argument("--encounters", "-e", default="", help="Potential encounters")
     add_loc_parser.add_argument("--secrets", "-s", default="", help="Hidden features or hooks")
     add_loc_parser.add_argument("--notes", "-n", default="", help="Additional notes")
+    add_loc_parser.add_argument("--discovered", default="", help="In-game date when discovered (e.g., 'Day 10')")
 
     # list-npcs command
     subparsers.add_parser("list-npcs", help="List all NPCs")
@@ -718,6 +780,26 @@ Examples:
         help="Entity type to check (npc, location, or omit for both)"
     )
 
+    # add-relationship command
+    rel_parser = subparsers.add_parser("add-relationship", help="Add a relationship between two NPCs")
+    rel_parser.add_argument("source", help="Source NPC name")
+    rel_parser.add_argument("target", help="Target NPC name")
+    rel_parser.add_argument(
+        "--type", "-t",
+        required=True,
+        help="Relationship type (ally, enemy, family, employer, employee, rival, neutral, romantic, mentor)"
+    )
+    rel_parser.add_argument(
+        "--description", "-d",
+        default="",
+        help="Description of the relationship"
+    )
+    rel_parser.add_argument(
+        "--one-way",
+        action="store_true",
+        help="Only add relationship in one direction (source -> target)"
+    )
+
     args = parser.parse_args()
 
     # Find repo root
@@ -731,6 +813,17 @@ Examples:
         sys.exit(1)
 
     if args.command == "add-npc":
+        # Validate and format first_seen if provided
+        first_seen = ""
+        first_seen_arg = getattr(args, "first_seen", "")
+        if first_seen_arg:
+            parsed = parse_in_game_date(first_seen_arg)
+            if parsed is None:
+                print(f"Error: Invalid in-game date format: {first_seen_arg}")
+                print("Expected format: 'Day N' (e.g., 'Day 12')")
+                sys.exit(1)
+            first_seen = format_in_game_date(parsed)
+
         npc_path = create_npc(
             npcs_dir,
             args.name,
@@ -743,12 +836,26 @@ Examples:
             secrets=args.secrets,
             combat=args.combat,
             notes=args.notes,
+            first_seen=first_seen,
         )
         update_npc_index(campaign_dir, args.name, args.role, npc_path.name)
         print(f"Created NPC: {args.name}")
+        if first_seen:
+            print(f"First appearance: {first_seen}")
         print(f"File: {npc_path}")
 
     elif args.command == "add-location":
+        # Validate and format discovered if provided
+        discovered = ""
+        discovered_arg = getattr(args, "discovered", "")
+        if discovered_arg:
+            parsed = parse_in_game_date(discovered_arg)
+            if parsed is None:
+                print(f"Error: Invalid in-game date format: {discovered_arg}")
+                print("Expected format: 'Day N' (e.g., 'Day 10')")
+                sys.exit(1)
+            discovered = format_in_game_date(parsed)
+
         loc_path = create_location(
             locations_dir,
             args.name,
@@ -761,9 +868,12 @@ Examples:
             encounters=args.encounters,
             secrets=args.secrets,
             notes=args.notes,
+            discovered=discovered,
         )
         update_location_index(campaign_dir, args.name, args.type, loc_path.name)
         print(f"Created location: {args.name}")
+        if discovered:
+            print(f"Discovered: {discovered}")
         print(f"File: {loc_path}")
 
     elif args.command == "list-npcs":
@@ -819,6 +929,53 @@ Examples:
         else:
             print(f"Name '{args.name}' is available.")
             sys.exit(0)
+
+    elif args.command == "add-relationship":
+        # Find source NPC file
+        source_file = find_npc_by_name(npcs_dir, args.source)
+        if source_file is None:
+            print(f"Error: NPC '{args.source}' not found.")
+            sys.exit(1)
+
+        # Find target NPC file
+        target_file = find_npc_by_name(npcs_dir, args.target)
+        if target_file is None:
+            print(f"Error: NPC '{args.target}' not found.")
+            sys.exit(1)
+
+        # Validate relationship type
+        rel_type = args.type.lower()
+        if rel_type not in RELATIONSHIP_TYPES:
+            print(f"Warning: '{rel_type}' is not a standard relationship type.")
+            print(f"Standard types: {', '.join(RELATIONSHIP_TYPES.keys())}")
+
+        # Add relationship to source NPC
+        source_content = source_file.read_text(encoding="utf-8")
+        source_content = add_relationship_to_content(
+            source_content,
+            args.target,
+            target_file.name,
+            rel_type,
+            args.description,
+        )
+        source_file.write_text(source_content, encoding="utf-8")
+        print(f"Added: {args.source} --[{rel_type}]--> {args.target}")
+
+        # Add inverse relationship to target NPC (unless one-way)
+        if not args.one_way:
+            inverse_type = RELATIONSHIP_TYPES.get(rel_type, rel_type)
+            target_content = target_file.read_text(encoding="utf-8")
+            target_content = add_relationship_to_content(
+                target_content,
+                args.source,
+                source_file.name,
+                inverse_type,
+                args.description,
+            )
+            target_file.write_text(target_content, encoding="utf-8")
+            print(f"Added: {args.target} --[{inverse_type}]--> {args.source}")
+
+        print("\nRun `python scripts/campaign/relationship_graph.py` to regenerate the graph.")
 
     else:
         parser.print_help()

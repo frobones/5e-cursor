@@ -145,26 +145,26 @@ class ItemExtractor:
                 parts.append("**Requires Attunement**")
             parts.append("")
 
-        # Weight
+        # Weight (trailing double-space for hard line break)
         weight = item.get('weight', None)
         if weight:
-            parts.append(f"**Weight:** {weight} lb.")
+            parts.append(f"**Weight:** {weight} lb.  ")
 
-        # Value
+        # Value (trailing double-space for hard line break)
         value = item.get('value', None)
         if value:
-            parts.append(f"**Value:** {self._format_value(value)}")
+            parts.append(f"**Value:** {self._format_value(value)}  ")
 
-        # Weapon/armor specific properties
+        # Weapon/armor specific properties (trailing double-spaces)
         if item.get('weaponCategory'):
-            parts.append(f"**Weapon Category:** {item.get('weaponCategory')}")
+            parts.append(f"**Weapon Category:** {item.get('weaponCategory')}  ")
             dmg1 = item.get('dmg1')
             dmg_type = item.get('dmgType')
             if dmg1:
-                parts.append(f"**Damage:** {dmg1} {self._get_damage_type(dmg_type)}")
+                parts.append(f"**Damage:** {dmg1} {self._get_damage_type(dmg_type)}  ")
 
         if item.get('ac'):
-            parts.append(f"**Armor Class:** {item.get('ac')}")
+            parts.append(f"**Armor Class:** {item.get('ac')}  ")
 
         parts.append("")
         parts.append("---")

@@ -911,6 +911,7 @@ def extract_vehicles():
     vehicles_dir = REFERENCE_DIR / "vehicles"
 
     extractor = VehicleExtractor(str(vehicles_dir), sources=SOURCE_CONFIG.sources)
+    EXTRACTORS['vehicles'] = extractor
 
     vehicles_file = DATA_DIR / "vehicles.json"
     if vehicles_file.exists():
@@ -927,6 +928,7 @@ def extract_optional_features():
     features_dir = REFERENCE_DIR / "optional-features"
 
     extractor = OptionalFeatureExtractor(str(features_dir), sources=SOURCE_CONFIG.sources)
+    EXTRACTORS['optional-features'] = extractor
 
     features_file = DATA_DIR / "optionalfeatures.json"
     if features_file.exists():
@@ -943,6 +945,7 @@ def extract_traps():
     traps_dir = REFERENCE_DIR / "traps-hazards"
 
     extractor = TrapExtractor(str(traps_dir), sources=SOURCE_CONFIG.sources)
+    EXTRACTORS['traps'] = extractor
 
     traps_file = DATA_DIR / "trapshazards.json"
     if traps_file.exists():
@@ -960,6 +963,7 @@ def extract_languages():
     languages_dir = REFERENCE_DIR / "languages"
 
     extractor = LanguageExtractor(str(languages_dir))
+    EXTRACTORS['languages'] = extractor
 
     languages_file = DATA_DIR / "languages.json"
     if languages_file.exists():
@@ -976,6 +980,7 @@ def extract_bastions():
     bastions_dir = REFERENCE_DIR / "bastions"
 
     extractor = BastionExtractor(str(bastions_dir))
+    EXTRACTORS['bastions'] = extractor
 
     bastions_file = DATA_DIR / "bastions.json"
     if bastions_file.exists():
@@ -992,6 +997,7 @@ def extract_deities():
     deities_dir = REFERENCE_DIR / "deities"
 
     extractor = DeityExtractor(str(deities_dir))
+    EXTRACTORS['deities'] = extractor
 
     deities_file = DATA_DIR / "deities.json"
     if deities_file.exists():
@@ -1008,6 +1014,7 @@ def extract_rewards():
     rewards_dir = REFERENCE_DIR / "rewards"
 
     extractor = RewardExtractor(str(rewards_dir))
+    EXTRACTORS['rewards'] = extractor
 
     rewards_file = DATA_DIR / "rewards.json"
     if rewards_file.exists():
@@ -1024,6 +1031,7 @@ def extract_objects():
     objects_dir = REFERENCE_DIR / "objects"
 
     extractor = ObjectExtractor(str(objects_dir))
+    EXTRACTORS['objects'] = extractor
 
     objects_file = DATA_DIR / "objects.json"
     if objects_file.exists():
@@ -1040,6 +1048,7 @@ def extract_decks():
     decks_dir = REFERENCE_DIR / "decks"
 
     extractor = DeckExtractor(str(decks_dir))
+    EXTRACTORS['decks'] = extractor
 
     decks_file = DATA_DIR / "decks.json"
     if decks_file.exists():
@@ -1056,6 +1065,7 @@ def extract_skills():
     skills_dir = REFERENCE_DIR / "skills"
 
     extractor = SkillExtractor(str(skills_dir))
+    EXTRACTORS['skills'] = extractor
 
     skills_file = DATA_DIR / "skills.json"
     if skills_file.exists():
@@ -1072,6 +1082,7 @@ def extract_item_mastery():
     mastery_dir = REFERENCE_DIR / "mastery"
 
     extractor = ItemMasteryExtractor(str(mastery_dir))
+    EXTRACTORS['mastery'] = extractor
 
     base_items_file = DATA_DIR / "items-base.json"
     if base_items_file.exists():
@@ -1088,6 +1099,7 @@ def extract_encounters():
     encounters_dir = REFERENCE_DIR / "encounters"
 
     extractor = EncounterExtractor(str(encounters_dir))
+    EXTRACTORS['encounters'] = extractor
 
     encounters_file = DATA_DIR / "encounters.json"
     if encounters_file.exists():
@@ -1104,6 +1116,7 @@ def extract_loot():
     loot_dir = REFERENCE_DIR / "loot"
 
     extractor = LootExtractor(str(loot_dir))
+    EXTRACTORS['loot'] = extractor
 
     loot_file = DATA_DIR / "loot.json"
     if loot_file.exists():
@@ -1147,6 +1160,64 @@ def generate_indexes():
         rules_extractor = EXTRACTORS['rules']
         for category, entries in rules_extractor.index_entries.items():
             collector.add_entries('rules', entries)
+
+    # Add skills
+    if 'skills' in EXTRACTORS:
+        collector.add_entries('skills', EXTRACTORS['skills'].index_entries)
+
+    # Add species traits for searchability
+    if 'species' in EXTRACTORS:
+        collector.add_entries('species-traits', EXTRACTORS['species'].trait_entries)
+
+    # Add languages
+    if 'languages' in EXTRACTORS:
+        collector.add_entries('languages', EXTRACTORS['languages'].index_entries)
+
+    # Add vehicles
+    if 'vehicles' in EXTRACTORS:
+        collector.add_entries('vehicles', EXTRACTORS['vehicles'].index_entries)
+
+    # Add optional features
+    if 'optional-features' in EXTRACTORS:
+        collector.add_entries('optional-features', EXTRACTORS['optional-features'].index_entries)
+
+    # Add traps and hazards (flatten the dict structure)
+    if 'traps' in EXTRACTORS:
+        traps_extractor = EXTRACTORS['traps']
+        for category, entries in traps_extractor.index_entries.items():
+            collector.add_entries('traps-hazards', entries)
+
+    # Add bastions
+    if 'bastions' in EXTRACTORS:
+        collector.add_entries('bastions', EXTRACTORS['bastions'].index_entries)
+
+    # Add deities
+    if 'deities' in EXTRACTORS:
+        collector.add_entries('deities', EXTRACTORS['deities'].index_entries)
+
+    # Add rewards
+    if 'rewards' in EXTRACTORS:
+        collector.add_entries('rewards', EXTRACTORS['rewards'].index_entries)
+
+    # Add objects
+    if 'objects' in EXTRACTORS:
+        collector.add_entries('objects', EXTRACTORS['objects'].index_entries)
+
+    # Add decks
+    if 'decks' in EXTRACTORS:
+        collector.add_entries('decks', EXTRACTORS['decks'].index_entries)
+
+    # Add weapon mastery
+    if 'mastery' in EXTRACTORS:
+        collector.add_entries('mastery', EXTRACTORS['mastery'].index_entries)
+
+    # Add encounter tables
+    if 'encounters' in EXTRACTORS:
+        collector.add_entries('encounter-tables', EXTRACTORS['encounters'].index_entries)
+
+    # Add loot tables
+    if 'loot' in EXTRACTORS:
+        collector.add_entries('loot-tables', EXTRACTORS['loot'].index_entries)
 
     # Generate master JSON index
     collector.generate_master_json(BOOKS_DIR / "reference-index.json")

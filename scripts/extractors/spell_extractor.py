@@ -145,23 +145,23 @@ class SpellExtractor:
             parts.append(source_str)
             parts.append("")
 
-        # Casting time
+        # Casting time (trailing double-space for hard line break)
         time = spell.get('time', [])
         if time:
             time_str = self._format_time(time[0])
-            parts.append(f"**Casting Time:** {time_str}")
+            parts.append(f"**Casting Time:** {time_str}  ")
 
-        # Range
+        # Range (trailing double-space for hard line break)
         range_data = spell.get('range', {})
         range_str = self._format_range(range_data)
-        parts.append(f"**Range:** {range_str}")
+        parts.append(f"**Range:** {range_str}  ")
 
-        # Components
+        # Components (trailing double-space for hard line break)
         components = spell.get('components', {})
         comp_str = self._format_components(components)
-        parts.append(f"**Components:** {comp_str}")
+        parts.append(f"**Components:** {comp_str}  ")
 
-        # Duration
+        # Duration (no trailing space - last in block)
         duration = spell.get('duration', [])
         if duration:
             dur_str = self._format_duration(duration[0])

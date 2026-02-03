@@ -41,6 +41,7 @@ class SpeciesExtractor:
         self.sources = set(s.upper() for s in sources) if sources else ALLOWED_SOURCES
         self.converter = EntryConverter(heading_level=2)
         self.index_entries = []
+        self.trait_entries = []  # Species traits for searchability
 
     def extract_file(self, source_path: str) -> int:
         """Extract species from a source file. Returns count extracted."""
@@ -91,6 +92,22 @@ class SpeciesExtractor:
             'speed': speed,
             'path': filename,
         })
+
+        # Extract traits for searchability
+        entries = race.get('entries', [])
+        for entry in entries:
+            if isinstance(entry, dict) and entry.get('type') == 'entries':
+                trait_name = entry.get('name', '')
+                if trait_name:
+                    # Create anchor-friendly slug
+                    trait_anchor = trait_name.lower().replace(" ", "-").replace("'", "")
+                    self.trait_entries.append({
+                        'name': trait_name,
+                        'parent_species': name,
+                        'source': source,
+                        'path': filename,
+                        'anchor': trait_anchor,
+                    })
 
     def _species_to_markdown(self, race: dict) -> str:
         """Convert a species to markdown."""

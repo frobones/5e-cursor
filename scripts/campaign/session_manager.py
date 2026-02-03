@@ -5,6 +5,7 @@ Session Manager - Track session history and summaries.
 Usage:
     python scripts/campaign/session_manager.py new "The Beginning"
     python scripts/campaign/session_manager.py new --title "Into the Dungeon"
+    python scripts/campaign/session_manager.py new "Cave Exploration" --in-game-date "Day 15"
     python scripts/campaign/session_manager.py list
     python scripts/campaign/session_manager.py show 3
 """
@@ -18,6 +19,7 @@ from pathlib import Path
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from lib.campaign_calendar import format_in_game_date, parse_in_game_date
 from lib.markdown_writer import bold, heading, horizontal_rule, iso_date, session_filename
 
 
@@ -48,6 +50,7 @@ def create_session(
     sessions_dir: Path,
     title: str,
     session_number: int,
+    in_game_date: str | None = None,
 ) -> Path:
     """Create a new session file.
 
@@ -55,6 +58,7 @@ def create_session(
         sessions_dir: Path to sessions directory
         title: Session title
         session_number: Session number
+        in_game_date: In-game date string (e.g., "Day 15")
 
     Returns:
         Path to created session file
@@ -66,9 +70,14 @@ def create_session(
 
     today = iso_date()
 
+    # Build metadata section
+    in_game_line = ""
+    if in_game_date:
+        in_game_line = f"\n{bold('In-Game Date')}: {in_game_date}  "
+
     content = f"""{heading(f"Session {session_number}: {title}")}
 
-{bold("Date")}: {today}  
+{bold("Date")}: {today}  {in_game_line}
 {bold("Session Number")}: {session_number}
 
 {horizontal_rule()}
@@ -246,6 +255,11 @@ Examples:
         type=int,
         help="Override session number",
     )
+    new_parser.add_argument(
+        "--in-game-date", "-d",
+        dest="in_game_date",
+        help="In-game date (e.g., 'Day 15')",
+    )
 
     # list command
     subparsers.add_parser("list", help="List all sessions")
@@ -279,11 +293,23 @@ Examples:
         else:
             session_num = get_next_session_number(sessions_dir)
 
+        # Validate and format in-game date if provided
+        in_game_date = None
+        if args.in_game_date:
+            parsed = parse_in_game_date(args.in_game_date)
+            if parsed is None:
+                print(f"Error: Invalid in-game date format: {args.in_game_date}")
+                print("Expected format: 'Day N' (e.g., 'Day 15')")
+                sys.exit(1)
+            in_game_date = format_in_game_date(parsed)
+
         # Create session
-        session_path = create_session(sessions_dir, title, session_num)
+        session_path = create_session(sessions_dir, title, session_num, in_game_date)
         update_session_index(campaign_dir, session_num, title, session_path.name)
 
         print(f"Created session {session_num}: {title}")
+        if in_game_date:
+            print(f"In-game date: {in_game_date}")
         print(f"File: {session_path}")
 
     elif args.command == "list":

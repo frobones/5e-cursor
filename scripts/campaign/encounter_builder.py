@@ -252,12 +252,21 @@ def load_creatures(books_dir: Path) -> list[Creature]:
         cr = entry.get("cr", "0")
         xp = cr_to_xp(cr)
 
+        # Handle creature_type which can be a string or a dict with "choose" array
+        raw_type = entry.get("creature_type", "")
+        if isinstance(raw_type, dict):
+            # Use first choice if it's a choose structure
+            choices = raw_type.get("choose", [])
+            creature_type = choices[0] if choices else ""
+        else:
+            creature_type = raw_type
+
         creatures.append(Creature(
             name=name,
             cr=cr,
             xp=xp,
             path=entry.get("path", ""),
-            creature_type=entry.get("creature_type", ""),
+            creature_type=creature_type,
             size=entry.get("size", ""),
             alignment=entry.get("alignment", ""),
             environments=entry.get("environments", []),
@@ -421,6 +430,47 @@ def generate_encounter(
     return best_encounter
 
 
+def generate_encounter_loot(encounter: Encounter) -> str:
+    """Generate loot for an encounter based on creatures.
+
+    Args:
+        encounter: The encounter to generate loot for
+
+    Returns:
+        Markdown-formatted loot section
+    """
+    try:
+        from campaign.loot_generator import LootGenerator, TreasureFormatter
+
+        # Find the highest CR among creatures
+        max_cr = 0.0
+        for entry in encounter.entries:
+            cr = parse_cr(entry.creature.cr)
+            if cr > max_cr:
+                max_cr = cr
+
+        if max_cr == 0 and encounter.entries:
+            max_cr = 0.25  # Default to CR 1/4 if all CRs invalid
+
+        # Generate individual loot for each creature
+        reference_index = Path("books/reference/reference-index.json")
+        generator = LootGenerator(
+            reference_index_path=reference_index if reference_index.exists() else None
+        )
+        treasure = generator.generate_individual(max_cr, encounter.total_creatures)
+
+        # Format as markdown
+        formatter = TreasureFormatter(generator.linker)
+        loot_text = formatter.format_console(
+            treasure, f"Treasure (Individual, {encounter.total_creatures} creatures)"
+        )
+
+        return loot_text
+    except Exception as e:
+        # If loot generation fails, return error message
+        return f"## Treasure\n\n*Loot generation failed: {e}*\n"
+
+
 def format_encounter_markdown(
     encounter: Encounter,
     linker: Optional[ReferenceLinker],
@@ -429,10 +479,12 @@ def format_encounter_markdown(
 ) -> str:
     """Format an encounter as markdown.
 
+    Matches the Web UI format for consistency.
+
     Args:
         encounter: The encounter to format
-        linker: Reference linker for creature links
-        from_path: Path of output file for relative links
+        linker: Reference linker for creature links (unused, kept for API compat)
+        from_path: Path of output file for relative links (unused, kept for API compat)
         name: Optional encounter name
 
     Returns:
@@ -445,29 +497,17 @@ def format_encounter_markdown(
     lines.append(heading(title))
     lines.append("")
 
-    # Summary
-    lines.append(f"{bold('Difficulty')}: {encounter.actual_difficulty.title()} (target: {encounter.target_difficulty.title()})  ")
-    lines.append(f"{bold('Party')}: {encounter.party_size} characters, level {encounter.party_level}  ")
-    lines.append(f"{bold('Total Creatures')}: {encounter.total_creatures}")
+    # Header metadata (matches Web UI format)
+    lines.append(f"{bold('Difficulty')}: {encounter.actual_difficulty.title()}  ")
+    lines.append(f"{bold('Party Level')}: {encounter.party_level}  ")
+    lines.append(f"{bold('Party Size')}: {encounter.party_size}  ")
+    lines.append(f"{bold('Total Creatures')}: {encounter.total_creatures}  ")
+    lines.append(f"{bold('Base XP')}: {encounter.base_xp:,}  ")
+    lines.append(f"{bold('Adjusted XP')}: {encounter.adjusted_xp:,}  ")
+    lines.append(f"{bold('Created')}: {iso_date()}")
     lines.append("")
 
-    # XP Breakdown
-    lines.append(heading("XP", 2))
-    lines.append("")
-    multiplier = get_encounter_multiplier(encounter.total_creatures)
-    lines.append(f"- {bold('Base XP')}: {encounter.base_xp:,}")
-    lines.append(f"- {bold('Multiplier')}: x{multiplier} ({encounter.total_creatures} creatures)")
-    lines.append(f"- {bold('Adjusted XP')}: {encounter.adjusted_xp:,}")
-    lines.append("")
-
-    # Party thresholds for reference
-    thresholds = get_party_thresholds(encounter.party_level, encounter.party_size)
-    lines.append(heading("Party Thresholds", 3))
-    lines.append("")
-    lines.append(f"Easy: {thresholds['easy']:,} | Medium: {thresholds['medium']:,} | Hard: {thresholds['hard']:,} | Deadly: {thresholds['deadly']:,}")
-    lines.append("")
-
-    # Creatures table
+    # Creatures table (no markdown links, matches Web UI)
     lines.append(heading("Creatures", 2))
     lines.append("")
 
@@ -475,16 +515,10 @@ def format_encounter_markdown(
     rows = []
 
     for entry in sorted(encounter.entries, key=lambda e: parse_cr(e.creature.cr), reverse=True):
-        if linker:
-            creature_link = linker.link(entry.creature.name, from_path, "creatures")
-            name_cell = creature_link if creature_link else entry.creature.name
-        else:
-            name_cell = entry.creature.name
-
         rows.append([
-            name_cell,
+            entry.creature.name,
             entry.creature.cr,
-            str(entry.creature.xp),
+            f"{entry.creature.xp:,}",
             str(entry.count),
             f"{entry.total_xp:,}",
         ])
@@ -492,9 +526,10 @@ def format_encounter_markdown(
     lines.append(table(headers, rows))
     lines.append("")
 
-    # Footer
-    lines.append(horizontal_rule())
-    lines.append(f"*Generated on {iso_date()}*")
+    # Treasure section (matches Web UI)
+    loot_markdown = generate_encounter_loot(encounter)
+    lines.append(loot_markdown)
+    lines.append("")
 
     return "\n".join(lines)
 

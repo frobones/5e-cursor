@@ -22,6 +22,27 @@ LEGACY_ALIASES = {
     "smite": "divine smite",
 }
 
+# Equipment name mappings (D&D Beyond format -> Reference format)
+EQUIPMENT_ALIASES = {
+    # Crossbows (D&D Beyond uses "Type, Variant" format)
+    "crossbow, hand": "hand crossbow",
+    "crossbow, light": "light crossbow",
+    "crossbow, heavy": "heavy crossbow",
+    # Armor (D&D Beyond often omits "Armor")
+    "leather": "leather armor",
+    "padded": "padded armor",
+    "studded leather": "studded leather armor",
+    "hide": "hide armor",
+    "chain shirt": "chain shirt",
+    "scale mail": "scale mail",
+    "breastplate": "breastplate",
+    "half plate": "half plate armor",
+    "ring mail": "ring mail",
+    "chain mail": "chain mail",
+    "splint": "splint armor",
+    "plate": "plate armor",
+}
+
 
 class ReferenceLinker:
     """Links entity names to reference file paths."""
@@ -96,6 +117,13 @@ class ReferenceLinker:
         """
         normalized = self._normalize(name)
         entries = self._index.get(normalized, [])
+
+        # If no match, check equipment aliases
+        if not entries:
+            name_lower = name.lower().strip()
+            if name_lower in EQUIPMENT_ALIASES:
+                aliased = self._normalize(EQUIPMENT_ALIASES[name_lower])
+                entries = self._index.get(aliased, [])
 
         if not entries:
             return None

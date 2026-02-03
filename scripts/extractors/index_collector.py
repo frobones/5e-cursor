@@ -114,6 +114,37 @@ class IndexCollector:
                     clean_entry['level'] = entry.get('level', 1)
                 elif category == 'rules':
                     clean_entry['rule_type'] = entry.get('type', '')
+                elif category == 'skills':
+                    clean_entry['ability'] = entry.get('ability', [])
+                elif category == 'species-traits':
+                    clean_entry['parent_species'] = entry.get('parent_species', '')
+                    clean_entry['anchor'] = entry.get('anchor', '')
+                    # Override path to point to species directory (not species-traits)
+                    clean_entry['path'] = f"reference/species/{entry.get('path', '')}"
+                elif category == 'languages':
+                    clean_entry['language_type'] = entry.get('type', 'Standard')
+                elif category == 'vehicles':
+                    clean_entry['vehicle_type'] = entry.get('type', '')
+                elif category == 'optional-features':
+                    clean_entry['feature_type'] = entry.get('type', '')
+                elif category == 'traps-hazards':
+                    pass  # Basic fields only
+                elif category == 'bastions':
+                    clean_entry['level'] = entry.get('level', '')
+                elif category == 'deities':
+                    clean_entry['pantheon'] = entry.get('pantheon', '')
+                elif category == 'rewards':
+                    clean_entry['reward_type'] = entry.get('type', '')
+                elif category == 'objects':
+                    pass  # Basic fields only
+                elif category == 'decks':
+                    clean_entry['cards'] = entry.get('cards', 0)
+                elif category == 'mastery':
+                    pass  # Basic fields only
+                elif category == 'encounter-tables':
+                    pass  # Basic fields only
+                elif category == 'loot-tables':
+                    clean_entry['loot_type'] = entry.get('type', '')
 
                 all_entries.append(clean_entry)
                 by_type[category].append(entry.get('name', ''))

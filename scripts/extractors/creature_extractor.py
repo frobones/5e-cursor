@@ -169,7 +169,7 @@ class CreatureExtractor:
         parts.append("---")
         parts.append("")
 
-        # AC
+        # AC (trailing double-space for hard line break)
         ac = monster.get('ac', [])
         if ac:
             if isinstance(ac[0], dict):
@@ -180,16 +180,16 @@ class CreatureExtractor:
                     ac_str += f" ({', '.join(ac_from)})"
             else:
                 ac_str = f"**Armor Class** {ac[0]}"
-            parts.append(ac_str)
+            parts.append(ac_str + "  ")
 
-        # HP
+        # HP (trailing double-space for hard line break)
         hp = monster.get('hp', {})
         if isinstance(hp, dict):
             avg = hp.get('average', 0)
             formula = hp.get('formula', '')
-            parts.append(f"**Hit Points** {avg} ({formula})")
+            parts.append(f"**Hit Points** {avg} ({formula})  ")
 
-        # Speed
+        # Speed (no trailing space - last in block)
         speed = monster.get('speed', {})
         if speed:
             speed_parts = []
@@ -219,32 +219,32 @@ class CreatureExtractor:
         parts.append("---")
         parts.append("")
 
-        # Saving throws
+        # Saving throws (trailing double-space for hard line break)
         saves = monster.get('save', {})
         if saves:
             save_parts = [f"{k.capitalize()} {v}" for k, v in saves.items()]
-            parts.append(f"**Saving Throws** {', '.join(save_parts)}")
+            parts.append(f"**Saving Throws** {', '.join(save_parts)}  ")
 
-        # Skills
+        # Skills (trailing double-space for hard line break)
         skills = monster.get('skill', {})
         if skills:
             skill_parts = [f"{k.capitalize()} {v}" for k, v in skills.items()]
-            parts.append(f"**Skills** {', '.join(skill_parts)}")
+            parts.append(f"**Skills** {', '.join(skill_parts)}  ")
 
-        # Damage resistances/immunities/vulnerabilities
+        # Damage resistances/immunities/vulnerabilities (trailing double-spaces)
         resist = monster.get('resist', [])
         if resist:
-            parts.append(f"**Damage Resistances** {self._format_damage_types(resist)}")
+            parts.append(f"**Damage Resistances** {self._format_damage_types(resist)}  ")
 
         immune = monster.get('immune', [])
         if immune:
-            parts.append(f"**Damage Immunities** {self._format_damage_types(immune)}")
+            parts.append(f"**Damage Immunities** {self._format_damage_types(immune)}  ")
 
         vuln = monster.get('vulnerable', [])
         if vuln:
-            parts.append(f"**Damage Vulnerabilities** {self._format_damage_types(vuln)}")
+            parts.append(f"**Damage Vulnerabilities** {self._format_damage_types(vuln)}  ")
 
-        # Condition immunities
+        # Condition immunities (trailing double-space for hard line break)
         cond_immune = monster.get('conditionImmune', [])
         if cond_immune:
             cond_list = []
@@ -261,22 +261,24 @@ class CreatureExtractor:
                             cond_str += f" {note}"
                         cond_list.append(cond_str)
             if cond_list:
-                parts.append(f"**Condition Immunities** {', '.join(cond_list)}")
+                parts.append(f"**Condition Immunities** {', '.join(cond_list)}  ")
 
-        # Senses, Languages, CR
+        # Senses (trailing double-space for hard line break)
         senses = monster.get('senses', [])
         passive = monster.get('passive', 10)
         if senses:
-            parts.append(f"**Senses** {', '.join(senses)}, passive Perception {passive}")
+            parts.append(f"**Senses** {', '.join(senses)}, passive Perception {passive}  ")
         else:
-            parts.append(f"**Senses** passive Perception {passive}")
+            parts.append(f"**Senses** passive Perception {passive}  ")
 
+        # Languages (trailing double-space for hard line break)
         languages = monster.get('languages', [])
         if languages:
-            parts.append(f"**Languages** {', '.join(languages)}")
+            parts.append(f"**Languages** {', '.join(languages)}  ")
         else:
-            parts.append("**Languages** —")
+            parts.append("**Languages** —  ")
 
+        # Challenge (no trailing space - last in block)
         cr = monster.get('cr', '0')
         if isinstance(cr, dict):
             cr = cr.get('cr', '0')

@@ -128,6 +128,10 @@ class Character:
     stats: CharacterStats = field(default_factory=CharacterStats)
     proficiency_bonus: int = 2
 
+    # Species info
+    size: str = "Medium"
+    creature_type: str = "Humanoid"
+
     # Combat
     max_hp: int = 0
     current_hp: int = 0
@@ -330,20 +334,25 @@ def _parse_classes(data: dict) -> list[ClassInfo]:
 
     for cls in data.get("classes", []):
         definition = cls.get("definition", {})
+        char_level = cls.get("level", 1)
         features = []
 
         for feature in cls.get("classFeatures", []):
             feat_def = feature.get("definition", {})
             if feat_def:
-                features.append({
-                    "name": feat_def.get("name", ""),
-                    "description": feat_def.get("description", ""),
-                    "snippet": feat_def.get("snippet", ""),
-                })
+                # Only include features the character has earned at their level
+                required_level = feat_def.get("requiredLevel", 1)
+                if required_level <= char_level:
+                    features.append({
+                        "name": feat_def.get("name", ""),
+                        "description": feat_def.get("description", ""),
+                        "snippet": feat_def.get("snippet", ""),
+                        "level": required_level,
+                    })
 
         classes.append(ClassInfo(
             name=definition.get("name", "Unknown"),
-            level=cls.get("level", 1),
+            level=char_level,
             is_starting=cls.get("isStartingClass", False),
             features=features,
             hit_dice=definition.get("hitDice", 8),
@@ -418,8 +427,33 @@ def parse_character(data: dict) -> Character:
             base_ac = item.armor_class + dex_mod  # Simplified, doesn't handle max dex bonus
             break
 
-    # Parse species traits
+    # Parse species/race info
     race = char_data.get("race", {})
+    
+    # Size mapping from D&D Beyond size IDs
+    SIZE_MAP = {
+        1: "Tiny",
+        2: "Small", 
+        3: "Medium",
+        4: "Large",
+        5: "Huge",
+        6: "Gargantuan",
+    }
+    size_id = race.get("sizeId", 3)
+    species_size = SIZE_MAP.get(size_id, "Medium")
+    
+    # Parse creature type - default to Humanoid
+    species_type = "Humanoid"
+    type_info = race.get("type", None)
+    if type_info:
+        species_type = type_info if isinstance(type_info, str) else "Humanoid"
+    
+    # Parse speed from race or walking speed
+    base_speed = race.get("weightSpeeds", {}).get("normal", {}).get("walk", 30)
+    if base_speed == 0:
+        base_speed = 30  # Default if not found
+    
+    # Parse species traits
     species_traits = []
     for trait in race.get("racialTraits", []):
         trait_def = trait.get("definition", {})
@@ -477,7 +511,9 @@ def parse_character(data: dict) -> Character:
         current_hp=max_hp - char_data.get("removedHitPoints", 0),
         temp_hp=char_data.get("temporaryHitPoints", 0),
         armor_class=base_ac,
-        speed=30,  # Default, could parse from race
+        speed=base_speed,
+        size=species_size,
+        creature_type=species_type,
         skill_proficiencies=skills,
         skill_expertise=expertise,
         saving_throws=saves,

@@ -5,7 +5,7 @@ Provides consistent formatting for campaign and reference markdown files.
 """
 
 import re
-from datetime import date
+from datetime import date, datetime
 from typing import Any
 
 
@@ -222,8 +222,8 @@ def relative_link(from_path: str, to_path: str) -> str:
 
 
 def iso_date() -> str:
-    """Return today's date in ISO format."""
-    return date.today().isoformat()
+    """Return current datetime in ISO format (with seconds precision)."""
+    return datetime.now().isoformat(timespec='seconds')
 
 
 def session_filename(session_number: int) -> str:

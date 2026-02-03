@@ -149,6 +149,93 @@ def create_campaign_structure(campaign_name: str, base_dir: Path) -> None:
         encounters_index.write_text(content, encoding="utf-8")
         print(f"Created: {encounters_index.relative_to(base_dir)}")
 
+    # Create events.md for custom timeline events
+    events_file = campaign_dir / "events.md"
+    if not events_file.exists():
+        content = f"""{heading("Campaign Events")}
+
+Add major campaign events here. These appear in the timeline alongside sessions, NPC first appearances, and location discoveries.
+
+| In-Game Date | Event | Session | Category |
+| ------------ | ----- | ------- | -------- |
+| Day 1 | Campaign begins | 1 | start |
+
+## Categories
+
+Use these categories for events:
+
+- `start` - Campaign start or major arc beginning
+- `battle` - Major combat encounter
+- `plot` - Significant story development
+- `discovery` - Important find or revelation
+- `custom` - Other notable events
+
+## Usage
+
+1. Add rows to the table above with new events
+2. Run `python scripts/campaign/timeline_generator.py` to regenerate the timeline
+3. Events will appear sorted by in-game date alongside session events
+
+{horizontal_rule()}
+
+*See campaign/timeline.md for the generated chronological timeline.*
+"""
+        events_file.write_text(content, encoding="utf-8")
+        print(f"Created: {events_file.relative_to(base_dir)}")
+
+    # Create relationships.md placeholder for NPC relationship graph
+    relationships_file = campaign_dir / "relationships.md"
+    if not relationships_file.exists():
+        content = f"""{heading("NPC Relationships")}
+
+*No relationships generated yet.*
+
+## Generating the Graph
+
+Run the relationship graph generator to create a visual diagram:
+
+```bash
+python scripts/campaign/relationship_graph.py
+```
+
+## Adding Relationships
+
+Add relationships between NPCs using the CLI:
+
+```bash
+python scripts/campaign/campaign_manager.py add-relationship "NPC A" "NPC B" --type ally --description "Old friends"
+```
+
+Or edit NPC files directly in the `## Connections` section:
+
+```markdown
+## Connections
+
+- [Other NPC](other-npc.md) | ally | Description of relationship
+```
+
+## Relationship Types
+
+| Type | Description |
+|------|-------------|
+| ally | Friendly, cooperative |
+| enemy | Hostile, adversarial |
+| family | Blood or marriage relation |
+| employer | Works for this person |
+| employee | This person works for them |
+| rival | Competitive relationship |
+| neutral | Knows but no strong feelings |
+| romantic | Love interest |
+| mentor | Teacher |
+| student | Learner |
+
+{horizontal_rule()}
+
+*Run `python scripts/campaign/relationship_graph.py` to generate the relationship graph.*
+"""
+        relationships_file.write_text(content, encoding="utf-8")
+        print(f"Created: {relationships_file.relative_to(base_dir)}")
+
     print(f"\nCampaign '{campaign_name}' initialized at {campaign_dir.relative_to(base_dir)}/")
 
 

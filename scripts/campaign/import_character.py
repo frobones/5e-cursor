@@ -33,6 +33,33 @@ from lib.markdown_writer import (
 from lib.reference_linker import ReferenceLinker
 
 
+def bullets_to_markdown_list(text: str) -> str:
+    """Convert bullet-point text (using •) to proper markdown list format.
+    
+    Handles text like:
+    "• Item one • Item two • Item three"
+    or
+    "• Item one\n• Item two"
+    
+    Returns proper markdown with each item on its own line starting with "- ".
+    """
+    if not text:
+        return text
+    
+    # Split by bullet character, handling both inline and newline formats
+    # First normalize newlines with bullets
+    normalized = text.replace("\n•", "•").replace("• ", "•")
+    
+    # Split on bullet
+    parts = [p.strip() for p in normalized.split("•") if p.strip()]
+    
+    if not parts:
+        return text
+    
+    # Return as markdown list
+    return "\n".join(f"- {part}" for part in parts)
+
+
 SKILL_STATS = {
     "Acrobatics": "dexterity",
     "Animal Handling": "wisdom",
@@ -181,13 +208,20 @@ def generate_character_markdown(
             for e in char.skill_expertise
         )
 
-        if is_expert:
-            skill_lines.append(f"- {bold(skill)} ({stat_abbrev}) {format_modifier(mod)} *(Expertise)*")
-        elif is_proficient:
-            skill_lines.append(f"- {bold(skill)} ({stat_abbrev}) {format_modifier(mod)}")
-        else:
-            skill_lines.append(f"- {skill} ({stat_abbrev}) {format_modifier(mod)}")
+        # Link skill name to reference
+        skill_link = linker.link(skill, from_path, "skills")
+        skill_display = skill_link if skill_link else skill
 
+        if is_expert:
+            skill_lines.append(f"✦ {skill_display} ({stat_abbrev}) {format_modifier(mod)}  ")
+        elif is_proficient:
+            skill_lines.append(f"● {skill_display} ({stat_abbrev}) {format_modifier(mod)}  ")
+        else:
+            skill_lines.append(f"○ {skill_display} ({stat_abbrev}) {format_modifier(mod)}  ")
+
+    # Remove trailing spaces from the last skill (no line break needed)
+    if skill_lines:
+        skill_lines[-1] = skill_lines[-1].rstrip()
     lines.extend(skill_lines)
     lines.append("")
 
@@ -195,7 +229,8 @@ def generate_character_markdown(
     if char.languages:
         lines.append(heading("Languages", 2))
         lines.append("")
-        lines.append(", ".join(char.languages))
+        lang_links = [linker.link_or_text(lang, from_path, "languages") for lang in char.languages]
+        lines.append(", ".join(lang_links))
         lines.append("")
 
     # Tool Proficiencies
@@ -211,17 +246,44 @@ def generate_character_markdown(
     lines.append("")
 
     # Species traits
+    lines.append(heading(f"Species: {char.species}", 3))
+    lines.append("")
+    
+    # Display core species info (languages shown in separate section)
+    lines.append(f"- {bold('Creature Type')}: {char.creature_type}")
+    lines.append(f"- {bold('Size')}: {char.size}")
+    lines.append(f"- {bold('Speed')}: {char.speed} ft.")
+    
+    # Display other racial traits
     if char.species_traits:
-        lines.append(heading(f"Species: {char.species}", 3))
         lines.append("")
+        lines.append(f"{bold('Traits')}:")
+        
+        # Get species link for anchoring traits
+        species_entry = linker.find(char.species, "species")
+        species_path = species_entry.get("path", "") if species_entry else ""
+        
         for trait in char.species_traits:
             trait_name = trait.get("name", "")
+            # Skip generic entries that are now shown above
+            if trait_name.lower() in ["creature type", "size", "speed", "ability score increases", "languages"]:
+                continue
+            
+            # First try to find the trait as a standalone reference
             trait_link = linker.link(trait_name, from_path)
             if trait_link:
                 lines.append(f"- {trait_link}")
+            elif species_path:
+                # Link to the species page with an anchor for the trait
+                trait_anchor = trait_name.lower().replace(" ", "-").replace("'", "")
+                # Calculate relative path (same logic as linker.link)
+                from_parts = Path(from_path).parent.parts
+                up_count = len(from_parts)
+                relative_path = "../" * up_count + f"books/{species_path}"
+                lines.append(f"- [{trait_name}]({relative_path}#{trait_anchor})")
             else:
                 lines.append(f"- {bold(trait_name)}")
-        lines.append("")
+    lines.append("")
 
     # Class features by class
     for cls in char.classes:
@@ -229,6 +291,9 @@ def generate_character_markdown(
         lines.append("")
         for feature in cls.features:
             feat_name = feature.get("name", "")
+            # Skip "Core X Traits" grouping headers (2024 PHB organizational labels)
+            if feat_name.startswith("Core ") and feat_name.endswith(" Traits"):
+                continue
             feat_link = linker.link(feat_name, from_path, "class-features")
             if feat_link:
                 lines.append(f"- {feat_link}")
@@ -310,16 +375,24 @@ def generate_character_markdown(
         lines.append(heading("Personality", 2))
         lines.append("")
         if char.personality_traits:
-            lines.append(f"{bold('Traits')}: {char.personality_traits}")
+            lines.append(f"{bold('Traits')}:")
+            lines.append("")
+            lines.append(bullets_to_markdown_list(char.personality_traits))
             lines.append("")
         if char.ideals:
-            lines.append(f"{bold('Ideals')}: {char.ideals}")
+            lines.append(f"{bold('Ideals')}:")
+            lines.append("")
+            lines.append(bullets_to_markdown_list(char.ideals))
             lines.append("")
         if char.bonds:
-            lines.append(f"{bold('Bonds')}: {char.bonds}")
+            lines.append(f"{bold('Bonds')}:")
+            lines.append("")
+            lines.append(bullets_to_markdown_list(char.bonds))
             lines.append("")
         if char.flaws:
-            lines.append(f"{bold('Flaws')}: {char.flaws}")
+            lines.append(f"{bold('Flaws')}:")
+            lines.append("")
+            lines.append(bullets_to_markdown_list(char.flaws))
             lines.append("")
 
     # Appearance
@@ -336,17 +409,17 @@ def generate_character_markdown(
         if char.allies:
             lines.append(heading("Allies", 3))
             lines.append("")
-            lines.append(char.allies)
+            lines.append(bullets_to_markdown_list(char.allies))
             lines.append("")
         if char.organizations:
             lines.append(heading("Organizations", 3))
             lines.append("")
-            lines.append(char.organizations)
+            lines.append(bullets_to_markdown_list(char.organizations))
             lines.append("")
         if char.enemies:
             lines.append(heading("Enemies", 3))
             lines.append("")
-            lines.append(char.enemies)
+            lines.append(bullets_to_markdown_list(char.enemies))
             lines.append("")
         if char.backstory:
             lines.append(heading("Backstory", 3))
@@ -640,11 +713,6 @@ def find_repo_root() -> Path:
 
 def cmd_import(args, repo_root: Path, campaign_dir: Path, books_dir: Path) -> None:
     """Handle the import subcommand."""
-    # Check if reference data exists
-    if not books_dir.exists():
-        print("Reference data not found. Run 'make' to extract reference data first.")
-        sys.exit(1)
-
     # Fetch character
     print("Fetching character from D&D Beyond...")
     try:

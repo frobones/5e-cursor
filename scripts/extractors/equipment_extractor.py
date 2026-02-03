@@ -222,49 +222,49 @@ class EquipmentExtractor:
         parts.append("---")
         parts.append("")
 
-        # Weight
+        # Weight (trailing double-space for hard line break)
         weight = item.get('weight')
         if weight:
-            parts.append(f"**Weight:** {weight} lb.")
+            parts.append(f"**Weight:** {weight} lb.  ")
 
-        # Value/Cost
+        # Value/Cost (trailing double-space for hard line break)
         value = item.get('value')
         if value:
-            parts.append(f"**Cost:** {self._format_value(value)}")
+            parts.append(f"**Cost:** {self._format_value(value)}  ")
 
-        # Weapon properties
+        # Weapon properties (trailing double-spaces)
         if item_type in {'M', 'R'}:
             # Damage
             dmg1 = item.get('dmg1')
             dmg_type = item.get('dmgType')
             if dmg1:
                 dmg_str = f"{dmg1} {self._get_damage_type(dmg_type)}"
-                parts.append(f"**Damage:** {dmg_str}")
+                parts.append(f"**Damage:** {dmg_str}  ")
 
             # Properties
             properties = item.get('property', [])
             if properties:
                 prop_str = ', '.join(self._format_property(p) for p in properties)
-                parts.append(f"**Properties:** {prop_str}")
+                parts.append(f"**Properties:** {prop_str}  ")
 
             # Range
             item_range = item.get('range')
             if item_range:
-                parts.append(f"**Range:** {item_range} ft.")
+                parts.append(f"**Range:** {item_range} ft.  ")
 
-        # Armor properties
+        # Armor properties (trailing double-spaces)
         if item_type in {'LA', 'MA', 'HA', 'S'}:
             ac = item.get('ac')
             if ac:
-                parts.append(f"**Armor Class:** {ac}")
+                parts.append(f"**Armor Class:** {ac}  ")
 
             strength = item.get('strength')
             if strength:
-                parts.append(f"**Strength Required:** {strength}")
+                parts.append(f"**Strength Required:** {strength}  ")
 
             stealth = item.get('stealth')
             if stealth:
-                parts.append("**Stealth:** Disadvantage")
+                parts.append("**Stealth:** Disadvantage  ")
 
         parts.append("")
         parts.append("---")
