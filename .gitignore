@@ -31,3 +31,6 @@ temp/
 
 # Web UI dev server PIDs (make web-ui)
 .web-ui.pids
+
+# Log files
+logs/

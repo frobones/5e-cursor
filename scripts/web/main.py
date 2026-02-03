@@ -12,6 +12,7 @@ Usage:
 """
 
 import logging
+import logging.handlers
 import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -28,8 +29,42 @@ from web.api import campaign, combat, creatures, docs, entities, reference, sear
 from web.api.websocket import broadcast_file_change
 from web.services.file_watcher import FileWatcherService
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+
+def configure_logging(log_to_file: bool = True) -> None:
+    """Configure logging for the web UI.
+
+    Args:
+        log_to_file: If True, log to file; if False, log to console.
+    """
+    log_format = "%(asctime)s %(levelname)s [%(name)s] %(message)s"
+    log_level = logging.INFO
+
+    if log_to_file:
+        # Ensure logs directory exists
+        logs_dir = Path(__file__).parent.parent.parent / "logs"
+        logs_dir.mkdir(exist_ok=True)
+        log_file = logs_dir / "web-ui.log"
+
+        # Rotating file handler: 5MB max, keep 3 backups
+        handler = logging.handlers.RotatingFileHandler(
+            log_file,
+            maxBytes=5 * 1024 * 1024,
+            backupCount=3,
+        )
+        handler.setFormatter(logging.Formatter(log_format))
+
+        # Configure root logger
+        logging.basicConfig(level=log_level, handlers=[handler])
+    else:
+        logging.basicConfig(level=log_level, format=log_format)
+
+    # Reduce noise from third-party libraries
+    logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
+    logging.getLogger("watchdog").setLevel(logging.WARNING)
+
+
+# Configure logging (log to file by default)
+configure_logging(log_to_file=True)
 logger = logging.getLogger(__name__)
 
 # Find repository root

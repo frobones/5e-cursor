@@ -69,16 +69,19 @@ demo-campaign-clean:
 
 web-ui:
 	@rm -f .web-ui.pids
-	@PYTHONPATH=scripts $(PYTHON) -m web.main & \
-	BACKEND_PID=$$!; \
-	(cd frontend && npm run dev) & \
-	FRONTEND_PID=$$!; \
-	echo $$BACKEND_PID >> .web-ui.pids; \
-	echo $$FRONTEND_PID >> .web-ui.pids; \
+	@mkdir -p logs
+	@PYTHONPATH=scripts $(PYTHON) -m web.main >> logs/backend.log 2>&1 & \
+	echo $$! >> .web-ui.pids; \
+	(cd frontend && exec npm run dev >> ../logs/frontend.log 2>&1) & \
+	echo $$! >> .web-ui.pids; \
 	echo ""; \
 	echo "Web UI started."; \
 	echo "  Frontend: http://localhost:5173"; \
 	echo "  Backend:  http://localhost:8000"; \
+	echo ""; \
+	echo "Logs:"; \
+	echo "  Backend:  logs/web-ui.log"; \
+	echo "  Frontend: logs/frontend.log"; \
 	echo ""; \
 	echo "Stop with: make web-ui-stop"; \
 	sleep 3

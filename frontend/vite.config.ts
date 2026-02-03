@@ -25,6 +25,15 @@ export default defineConfig({
       '/ws': {
         target: 'ws://localhost:8000',
         ws: true,
+        // Suppress benign EPIPE errors when WebSocket closes abruptly
+        configure: (proxy) => {
+          proxy.on('error', (err) => {
+            // Ignore EPIPE errors (broken pipe when client disconnects)
+            if ((err as NodeJS.ErrnoException).code !== 'EPIPE') {
+              console.error('[ws proxy error]', err.message);
+            }
+          });
+        },
       },
     },
   },
